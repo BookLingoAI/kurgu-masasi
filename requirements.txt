@@ -1,0 +1,2 @@
+# Kurgu Masası - Python paketleri (kurulum sihirbazının kullandığı liste)
+-r kurulum_kaynak/gereksinimler.txt

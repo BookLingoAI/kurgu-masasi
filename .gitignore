@@ -1,0 +1,39 @@
+# Only what is listed here is published. Everything else in this folder (videos, projects, models, logs, personal
+# settings, downloaded sound packs, the developer's notes) stays on this computer.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/LICENSE
+!/THIRD_PARTY.md
+!/KUR.bat
+!/KURGU MASASI AC.bat
+!/requirements.txt
+!/design_config.json
+!/dictionary.json
+!/kurgu/
+!/tests/
+!/assets/
+!/kurulum_kaynak/
+!/premiere/
+!/modeller/
+!/araclar/
+
+# inside the allowed folders
+__pycache__/
+*.pyc
+/assets/emoji/
+/assets/sfx_hazir/
+/modeller/*
+!/modeller/blaze_face_short_range.tflite
+!/modeller/selfie_segmenter.tflite
+!/modeller/face_landmarker.task
+!/modeller/MODELLER.md
+/araclar/*
+!/araclar/hyperframes/
+/araclar/hyperframes/node_modules/
+/kurulum_kaynak/rsrc_windows_amd64.syso
+/kurulum_kaynak/*.exe
+/kurulum_kaynak/payload*
+/premiere/*
+!/premiere/bos_proje.prproj

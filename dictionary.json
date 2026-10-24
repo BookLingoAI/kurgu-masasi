@@ -1,0 +1,19 @@
+{
+  "_comment": "Name corrections applied to every transcript. Key = what Whisper writes (case-insensitive, whole word/phrase), value = correct spelling.",
+  "replacements": {
+    "klod": "Claude",
+    "premier pro": "Premiere Pro",
+    "premier": "Premiere",
+    "çet gpt": "ChatGPT",
+    "chat gpt": "ChatGPT",
+    "vatopotlar": "ahtapotlar",
+    "vatopot": "ahtapot",
+    "şerefino": "jalapeño",
+    "sinirsiz": "sınırsız",
+    "müşroni": "mushroom",
+    "yalan ederken": "dana yanağı",
+    "açık alırım": "aç kalırım"
+  },
+  "_comment_vocabulary": "vocabulary: words Whisper should expect (food, places, names); learned from the user's corrections.",
+  "vocabulary": []
+}

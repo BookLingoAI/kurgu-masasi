@@ -1,0 +1,202 @@
+{
+  "_comment": "Every tunable number lives here. Frame values are given at 30 fps and pixel values at 1920 width; they are scaled to the source format at runtime.",
+  "reference": {
+    "fps": 30,
+    "width": 1920
+  },
+  "paths": {
+    "bridge_dir": "kopru",
+    "projects_dir": "Videolarım",
+    "sfx_dir": "assets/sfx",
+    "dictionary": "dictionary.json",
+    "user_settings": "user_settings.json",
+    "archive_dir": "Videolarım"
+  },
+  "audio_analysis": {
+    "sample_rate": 16000,
+    "frame_s": 0.01,
+    "noise_percentile": 10,
+    "speech_percentile": 90,
+    "threshold_fraction": 0.3,
+    "min_threshold_above_floor_db": 6.0,
+    "hysteresis_db": 3.0,
+    "min_speech_island_s": 0.06,
+    "edge_guard_s": 0.03,
+    "edge_extend_db": 4.0,
+    "edge_extend_max_s": 0.0
+  },
+  "cuts": {
+    "pause_cut_min_s": 0.25,
+    "pause_keep_s": 0.015,
+    "long_wait_min_s": 4.0,
+    "min_kept_segment_s": 0.12,
+    "nonspeech_island_max_s": 2.5,
+    "fillers": [
+      "ı",
+      "ıı",
+      "ııı",
+      "ıh",
+      "ıhm",
+      "ee",
+      "eee",
+      "eh",
+      "ehm",
+      "hmm",
+      "hm",
+      "mm",
+      "mmm",
+      "öö",
+      "ööö",
+      "öhm"
+    ],
+    "repeat_window_s": 25.0,
+    "inflow_max_gap_s": 1.0,
+    "restart_min_shared_words": 2,
+    "restart_similarity": 0.75,
+    "stem_min_prefix": 3,
+    "stem_prefix_fraction": 0.6,
+    "reduplication_max_gap_s": 0.2,
+    "paraphrase_similarity": 0.9,
+    "paraphrase_cut_similarity": 0.98,
+    "paraphrase_window_s": 15.0
+  },
+  "transcript": {
+    "model": "large-v3",
+    "language": "tr",
+    "device": "cuda",
+    "compute_type": "float16",
+    "beam_size": 5,
+    "chunk_max_s": 28.0,
+    "chunk_min_pause_s": 0.35,
+    "chunk_pad_s": 0.15,
+    "uncertain_word_max_prob": 0.35,
+    "uncertain_word_max_dur_s": 0.35,
+    "garbage_word_max_prob": 0.1,
+    "hallucination_patterns": [
+      "izlediğiniz için teşekkür",
+      "izlediğiniz için teşekkürler",
+      "altyazı m\\.?k\\.?",
+      "altyazı:",
+      "abone olmayı unutmayın",
+      "bir sonraki videoda görüşmek üzere",
+      "^\\s*\\.+\\s*$"
+    ],
+    "hallucination_max_avg_logprob": -0.6,
+    "hallucination_min_no_speech_prob": 0.5,
+    "verify_model": "large-v3-turbo",
+    "languages": [
+      "tr",
+      "en"
+    ],
+    "prompt": "Amerika'da yaşayan Türk bir vlogcu restoranda yemek yiyor, eşi ve garsonlarla bazen İngilizce konuşuyor. Geçen kelimeler:",
+    "prompt_en": "A casual conversation at a restaurant table about food: sushi, crab, mushroom, chili sauce, jalapeño, hot pot.",
+    "vocabulary": [
+      "sınırsız",
+      "hot pot",
+      "suşi",
+      "sushi",
+      "dana yanağı",
+      "dana dili",
+      "kuzu eti",
+      "ahtapot",
+      "karides",
+      "yengeç",
+      "midye",
+      "mantar",
+      "jalapeño",
+      "chili sos",
+      "wasabi",
+      "soya sosu",
+      "zencefil",
+      "tofu",
+      "udon",
+      "sos",
+      "büfe",
+      "dostlar",
+      "Hatun",
+      "Amerika",
+      "Teksas",
+      "Brezilya",
+      "barbekü",
+      "dolar",
+      "cent",
+      "bahşiş"
+    ]
+  },
+  "sync": {
+    "envelope_rate": 200,
+    "refine_rate": 8000,
+    "refine_window_s": 1.0,
+    "drift_probe_every_s": 60.0,
+    "drift_probe_len_s": 20.0,
+    "min_confidence": 6.0,
+    "min_correlation": 0.3
+  },
+  "screen_activity": {
+    "analysis_fps": 5,
+    "analysis_width": 640,
+    "video_playing_area_fraction": 0.05,
+    "video_playing_min_ratio": 0.6
+  },
+  "demo": {
+    "speaker_box_width_fraction": 0.21,
+    "speaker_box_left_fraction": 0.022,
+    "speaker_box_aspect": [
+      4,
+      3
+    ],
+    "speaker_box_corner_px": 18,
+    "speaker_box_border_px": 4,
+    "speaker_box_border_color": "#2A2A2A",
+    "speaker_box_anim_frames": [
+      8,
+      14
+    ],
+    "cursor_zoom": 1.4,
+    "cursor_dead_zone": 0.35
+  },
+  "font": "Bahnschrift",
+  "export": {
+    "min_free_gb": 20.0
+  },
+  "qa": {
+    "max_rounds": 3,
+    "variant_similarity": 0.6,
+    "max_real_loss_fraction": 0.01
+  },
+  "shorts": {
+    "min_s": 60,
+    "max_s": 180,
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "loudness": "I=-14:TP=-1.5:LRA=11",
+    "summary_min_s": 50,
+    "summary_max_s": 90
+  },
+  "llm": {
+    "model": "qwen3.8-27b",
+    "context_length": 16384,
+    "prefer": "qwen",
+    "no_think": true,
+    "timeout_s": 900
+  },
+  "thumbnail": {
+    "width": 1280,
+    "height": 720,
+    "text_color": "#FFFFFF",
+    "highlight_color": "#FFD400",
+    "samples": 48
+  },
+  "retouch": {
+    "enabled": true
+  },
+  "grade": {
+    "enabled": true,
+    "strength": 1.0
+  },
+  "image": {
+    "denoise": 0.0,
+    "sharpen": 0.3
+  }
+}

@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kurgu Masası</title>
+<style>
+:root {
+  --bg: #F5F6F8; --surface: #FFFFFF; --text: #14171C; --muted: #4A5361; --line: #E3E6EB;
+  --primary: #1D5FD6; --primary-text: #FFFFFF; --ok: #157A3D; --warn: #9A5B00; --err: #B42318;
+  --chip: #EEF1F5; --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0F1115; --surface: #171A21; --text: #F2F4F7; --muted: #AAB2BF; --line: #2A2F39;
+          --primary: #5B8DEF; --primary-text: #0B1220; --ok: #4CC38A; --warn: #F2B544; --err: #FF7A6E;
+          --chip: #222733; --shadow: none; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.55 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button, input, textarea { font: inherit; color: inherit; }
+h1 { font-size: 28px; line-height: 1.25; margin: 0 0 4px; font-weight: 650; }
+h2 { font-size: 20px; margin: 0 0 14px; font-weight: 650; }
+h3 { font-size: 16px; margin: 0 0 8px; font-weight: 650; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px 64px; }
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-top: 14px; padding-bottom: 14px; display: flex; align-items: center; gap: 16px; }
+.brand { font-weight: 700; font-size: 18px; color: var(--text); }
+.health { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+.stack > * + * { margin-top: 18px; }
+.grid { display: grid; gap: 16px; }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 860px) { .g3, .g2 { grid-template-columns: 1fr; } }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 10px; padding: 10px 16px; cursor: pointer; font-weight: 600; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-text); }
+.btn.big { padding: 13px 22px; font-size: 17px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.chip { display: inline-block; font-size: 13px; padding: 3px 10px; border-radius: 99px; background: var(--chip); color: var(--muted); font-weight: 600; }
+.chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); } .chip.err { color: var(--err); }
+.drop { border: 2px dashed var(--line); border-radius: var(--radius); padding: 36px 20px; text-align: center; transition: border-color .15s, background .15s; }
+.drop.over { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.drop p { margin: 6px 0; }
+.bar { height: 10px; background: var(--chip); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--primary); transition: width .3s ease; }
+.proj { display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
+.proj .ph { aspect-ratio: 16/9; border-radius: 8px; background: var(--chip); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.proj .ph img { width: 100%; height: 100%; object-fit: cover; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.list { border: 1px solid var(--line); border-radius: 10px; }
+.list > div { padding: 12px 14px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: center; }
+.list > div:last-child { border-bottom: 0; }
+.stat b { display: block; font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 14px; color: var(--muted); }
+.short { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 760px) { .short { grid-template-columns: 1fr; } }
+video.vert { width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 10px; }
+.thumb img { width: 100%; border-radius: 8px; display: block; border: 1px solid var(--line); }
+.copyrow { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.copyrow:last-child { border-bottom: 0; }
+.copyrow .t { flex: 1; font-size: 17px; font-weight: 600; }
+textarea.desc { width: 100%; min-height: 240px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); line-height: 1.55; resize: vertical; }
+input.txt, textarea.txt { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.note { padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 10%, transparent); color: var(--text); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); }
+.note.err { background: color-mix(in srgb, var(--err) 10%, transparent); border-color: color-mix(in srgb, var(--err) 35%, transparent); }
+details { border-top: 1px solid var(--line); padding-top: 14px; }
+summary { cursor: pointer; font-weight: 650; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+td, th { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 14px; }
+.words { line-height: 2; max-height: 420px; overflow: auto; }
+.words .cut { color: var(--muted); text-decoration: line-through; opacity: .7; }
+.scroll { max-height: 420px; overflow: auto; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(10px); background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: 10px; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; font-weight: 600; }
+.toast.on { opacity: 1; transform: translateX(-50%); }
+.hidden { display: none !important; }
+.btn.small { padding: 6px 12px; font-size: 14px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 9px 14px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--primary); color: var(--primary-text); }
+.mbox { border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.mbox.over { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.mitem { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.mitem .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mitem img { width: 64px; height: 36px; object-fit: cover; border-radius: 6px; background: var(--chip); }
+.mitem .x { border: 0; background: none; cursor: pointer; color: var(--err); font-size: 20px; line-height: 1; padding: 2px 6px; }
+.lane { position: relative; height: 28px; background: var(--chip); border-radius: 8px; overflow: hidden; }
+.lane i { position: absolute; top: 0; bottom: 0; min-width: 3px; }
+.lg { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); margin-right: 14px; }
+.lg i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="#/">Kurgu Masası</a>
+  <div class="health" id="health"></div>
+</div></header>
+
+<main class="wrap" id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = s => { if (s == null) return "—"; s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
+const fileUrl = (p, dl) => "/file?p=" + encodeURIComponent(p) + (dl ? "&dl=1" : "") + "&v=" + (window.__v || 0);
+function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2200); }
+async function api(path, body) {
+  const r = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)} : {cache: "no-store"});
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText); return j;
+}
+async function copy(text) { try { await navigator.clipboard.writeText(text); toast("Kopyalandı"); } catch { toast("Kopyalanamadı"); } }
+
+const ACTION_NAMES = {install_separator: "Müzik temizleyici kurulumu", install_assets: "Yazı tipi paketi kurulumu", draft: "Taslak kesim + önizleme", replan: "Plan ve önizleme", preview: "Önizleme", video: "Video işleme", archive: "Arşiv", premiere: "Premiere'e aktar", all: "Hepsini hazırla", rough: "Kaba kurgu", shorts: "Shorts", package: "Kapak kareleri",
+  analyze: "Analiz", plan: "Kesim planı", verify: "Doğrulama", apply: "Premiere", frames: "Kare alma", tests: "Testler", ping: "Premiere testi"};
+let timer = null;
+function schedule(fn, running) { clearTimeout(timer); timer = setTimeout(fn, running ? 1500 : 6000); }
+
+/* ------------------------------------------------------------------ router */
+window.addEventListener("hashchange", route);
+function route() {
+  clearTimeout(timer);
+  const m = location.hash.match(/^#\/p\/(.+)$/);
+  if (m) project(decodeURIComponent(m[1])); else home();
+}
+
+/* ------------------------------------------------------------------ home */
+async function home() {
+  const app = $("#app");
+  if (($("#setup") && !$("#setup").classList.contains("hidden")) || document.querySelector("[data-ham]:checked") ||
+      ($("#pickbtn") && $("#pickbtn").disabled)) { schedule(home, false); return; }   // don't wipe an open selection
+  let d;
+  try { d = await api("/api/projects"); } catch (e) { app.innerHTML = `<div class="note err">Sunucuya ulaşılamıyor: ${esc(e.message)}</div>`; return; }
+  health(d.health);
+  const used = new Set(d.projects.flatMap(p => p.source));
+  const hamKeys = new Set(d.ham.map(v => v.name + "|" + v.mb));
+  const free = d.ham.filter(v => { const m = v.name.match(/^(.*)-\d+(\.\w+)$/);   // hide "name-2.mp4" duplicate uploads
+    return !used.has(v.name) && !(m && hamKeys.has(m[1] + m[2] + "|" + v.mb)); });
+  const running = d.jobs.current && d.jobs.current.state === "running";
+  const low = d.disk && d.disk.free_gb < 40;
+  app.innerHTML = `
+  <div class="stack">
+    <div>
+      <h1>Videolarım</h1>
+      <p class="muted">Konuşma videonu ve (varsa) mekân görüntülerini seç; boşlukları, nefesleri ve tekrarları keser, sesi temizler, efektleri ekler ve Premiere'de kurgular.</p>
+    </div>
+    ${d.disk ? `<div class="note ${low ? "err" : ""}">Disk: <b>${d.disk.free_gb} GB boş</b> / ${d.disk.total_gb} GB${low ? " — yer az. Aşağıdaki projelerde “Ara dosyaları temizle” ya da “Sil” ile yer açın; yer azken uzun işler başlamaz." : ""}</div>` : ""}
+    <div class="card">
+      <div class="drop" id="drop">
+        <h2 style="margin-bottom:6px">Yeni video</h2>
+        <p class="muted">Dosyalar bilgisayarında olduğu yerde kullanılır, <b>kopyalanmaz ve yüklenmez</b> (hızlı, disk dolmaz). Konuşma videosunu ve mekân görüntülerini birlikte seçebilirsin; sonraki adımda hangisinin ne olduğunu gösterirsin.</p>
+        <p><button class="btn primary big" id="pickbtn">Bilgisayardan seç</button></p>
+        <p class="small muted">Sürükle-bırak da olur ama o zaman dosyalar uygulamanın klasörüne kopyalanır (yavaş, yer kaplar).</p>
+        <div id="up" class="hidden" style="max-width:520px;margin:16px auto 0">
+          <div class="bar"><i id="upbar"></i></div>
+          <p class="small muted" id="upmsg"></p>
+        </div>
+      </div>
+      <div id="setup" class="hidden"></div>
+      ${free.length ? `<div style="margin-top:18px"><h3>ham klasöründe bekleyen videolar</h3>
+        <div class="list">${free.map(v => `<div><label style="flex:1;display:flex;gap:10px;align-items:center;cursor:pointer">
+          <input type="checkbox" data-ham="${esc(v.path)}" data-mb="${v.mb}"> ${esc(v.name)}</label><span class="muted small">${v.mb} MB</span></div>`).join("")}</div>
+        <p><button class="btn" id="hamgo">Seçilenlerle devam et</button></p></div>` : ""}
+    </div>
+    ${running ? `<div class="note">Çalışan iş: <b>${esc(ACTION_NAMES[d.jobs.current.action] || d.jobs.current.action)}</b> · ${esc(d.jobs.current.project || "")} · ${esc(d.jobs.current.message)}</div>` : ""}
+    <div>
+      <h2>Projeler</h2>
+      ${d.projects.length ? `<div class="grid g3">${d.projects.map(p => `
+        <div class="card proj" data-open="${esc(p.name)}">
+          <div class="ph">${p.thumb ? `<img src="${fileUrl(p.thumb)}" alt="">` : "Kapak yok"}</div>
+          <div><h3 style="margin:0">${esc(p.title)}</h3>
+          <div class="small muted">${p.source_s ? fmt(p.source_s) + " → " + fmt(p.timeline_s) : "Henüz hazırlanmadı"} · klasör ${p.size_gb ?? "?"} GB</div></div>
+          <div class="row">${chip(p.has_plan, "Kurgu")}${chip(p.has_shorts, "Shorts")}${chip(p.has_package, "Kapak kareleri")}</div>
+          <div class="row"><button class="btn small" data-clean="${esc(p.name)}">Ara dosyaları temizle</button>
+            <button class="btn small" data-del="${esc(p.name)}" style="color:var(--err)">Sil</button></div>
+        </div>`).join("")}</div>` : `<p class="muted">Henüz proje yok.</p>`}
+    </div>
+  </div>`;
+  app.querySelectorAll("[data-open]").forEach(el => el.onclick = () => location.hash = "#/p/" + encodeURIComponent(el.dataset.open));
+  app.querySelectorAll("[data-clean]").forEach(b => b.onclick = async e => {
+    e.stopPropagation();
+    if (!confirm(`“${b.dataset.clean}” projesinin yeniden üretilebilen ara dosyaları (rötuşlu kopyalar, önizleme, geçici ses) silinsin mi?\n\nKaynak videolar, kurgu planı, bitmiş video, Shorts ve Premiere projesi kalır.`)) return;
+    try { const r = await api("/api/cleanup", {project: b.dataset.clean}); toast(`${r.files} dosya silindi, ${r.freed_gb} GB açıldı`); home(); } catch (err) { toast(err.message); }
+  });
+  app.querySelectorAll("[data-del]").forEach(b => b.onclick = async e => {
+    e.stopPropagation();
+    if (!confirm(`“${b.dataset.del}” projesi tamamen silinsin mi?\n\nProjenin klasöründeki her şey (kurgu, çıktılar, projeye kopyalanmış videolar) silinir ve geri alınamaz. Bilgisayarındaki asıl videolara ve ham klasörüne dokunulmaz.`)) return;
+    try { const r = await api("/api/delete_project", {project: b.dataset.del}); toast(`Silindi, ${r.freed_gb} GB açıldı`); home(); } catch (err) { toast(err.message); }
+  });
+  $("#pickbtn").onclick = async () => {
+    const btn = $("#pickbtn"); btn.disabled = true; btn.textContent = "Dosya seçme penceresi açık…";
+    try { const r = await api("/api/pick", {kind: "video"}); if (r.files.length) setupProject(r.files); }
+    catch (e) { toast(e.message); }
+    finally { btn.disabled = false; btn.textContent = "Bilgisayardan seç"; }
+  };
+  if ($("#hamgo")) $("#hamgo").onclick = async () => {
+    const paths = [...app.querySelectorAll("[data-ham]:checked")].map(c => c.dataset.ham);
+    if (!paths.length) { toast("Önce video seçin"); return; }
+    setupProject(paths.map(p => ({path: p, name: p.split(/[\\/]/).pop()})), true);
+  };
+  const drop = $("#drop");
+  ["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => { const f = [...e.dataTransfer.files]; if (f.length) uploadMany(f); });
+  schedule(home, running);
+}
+const chip = (on, label) => `<span class="chip ${on ? "ok" : ""}">${on ? "✓ " : ""}${label}</span>`;
+
+/* Second step of a new project: say which file is the talk and which are venue/extra shots. */
+async function setupProject(files, needInfo) {
+  clearTimeout(timer);
+  const box = $("#setup"); box.classList.remove("hidden");
+  if (needInfo) {
+    box.innerHTML = `<p class="muted">Dosyalar inceleniyor…</p>`;
+    try { files = (await api("/api/fileinfo", {paths: files.map(f => f.path)})).files; } catch (e) { toast(e.message); }
+  }
+  const isImg = f => f.image || /\.(jpe?g|png|webp|bmp|heic)$/i.test(f.name);
+  // default: long recordings are the talk, short clips/photos are extra shots; at least one talk file
+  const talk = f => !isImg(f) && (f.duration == null ? (f.gb || 0) > 2 : f.duration >= 150);
+  let roles = files.map(f => talk(f) ? "kamera" : "ek");
+  if (!roles.includes("kamera")) {
+    const vids = files.map((f, i) => [f, i]).filter(([f]) => !isImg(f));
+    if (vids.length) roles[vids.sort((a, b) => (b[0].duration || b[0].gb || 0) - (a[0].duration || a[0].gb || 0))[0][1]] = "kamera";
+  }
+  const dur = f => f.duration != null ? fmt(f.duration) : (isImg(f) ? "fotoğraf" : "");
+  box.innerHTML = `<div style="margin-top:18px"><h3>Hangisi ne?</h3>
+    <p class="small muted">Konuşma kaydı = kameraya anlattığın video (birden fazla parça olabilir, çekim sırasına dizilir). Ek görüntü = mekânın içi, b-roll, fotoğraf; müzikli tanıtımda ve konuşmada ilgili yerde kullanılır. İkisi de = konuşma kaydı, ayrıca tamamı intro için taranır. (Konuşma kayıtlarındaki yemek/mekân gösterdiğin anlar zaten kendiliğinden taranır.)</p>
+    <div class="list">${files.map((f, i) => `<div><span style="flex:1;min-width:0"><b>${esc(f.name)}</b>
+      <span class="small muted"> · ${dur(f)}${f.gb ? " · " + f.gb + " GB" : ""}</span></span>
+      ${isImg(f) ? `<span class="chip">Ek görüntü</span>` : `<div class="seg" data-role="${i}">
+        <button data-v="kamera" class="${roles[i] === "kamera" ? "on" : ""}">Konuşma kaydı</button>
+        <button data-v="ek" class="${roles[i] === "ek" ? "on" : ""}">Ek görüntü</button>
+        <button data-v="ikisi" class="" title="Konuşma kaydı olarak kullanılır, ayrıca tamamı intro için taranır">İkisi de</button>
+        <button data-v="yok" class="">Kullanma</button></div>`}</div>`).join("")}</div>
+    <div class="row" style="margin-top:12px;gap:12px">
+      <input class="txt" id="sp_title" placeholder="Proje adı (isteğe bağlı)" style="flex:1;min-width:200px">
+      <input class="txt" id="sp_note" placeholder="Ek görüntüler ne gösteriyor? (ör. iç mekan)" style="flex:1;min-width:200px"></div>
+    <p class="row" style="gap:10px"><button class="btn primary" id="sp_go">Projeyi oluştur</button><button class="btn" id="sp_cancel">Vazgeç</button></p></div>`;
+  box.querySelectorAll("[data-role]").forEach(g => g.querySelectorAll("button").forEach(b => b.onclick = () => {
+    roles[+g.dataset.role] = b.dataset.v; g.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  }));
+  $("#sp_cancel").onclick = () => { box.classList.add("hidden"); box.innerHTML = ""; home(); };
+  $("#sp_go").onclick = async () => {
+    const videos = files.filter((f, i) => roles[i] === "kamera" || roles[i] === "ikisi").map(f => f.path);
+    const broll = files.filter((f, i) => roles[i] === "ek").map(f => f.path);
+    const intro = files.filter((f, i) => roles[i] === "ikisi").map(f => f.path);
+    if (!videos.length) { toast("En az bir konuşma kaydı seçin"); return; }
+    try {
+      const p = await api("/api/project", {videos, broll, intro, title: $("#sp_title").value.trim() || null, note: $("#sp_note").value.trim()});
+      box.classList.add("hidden"); box.innerHTML = "";
+      location.hash = "#/p/" + encodeURIComponent(p.name);
+    } catch (e) { toast(e.message); }
+  };
+}
+
+/* Upload with a pre-check: a file that is already on this PC (same name and size) is reused, never re-uploaded;
+   if the disk is too full the server says so before anything is sent. */
+async function upOrReuse(file, url, onprog) {
+  const pc = await api(`/api/precheck?name=${encodeURIComponent(file.name)}&size=${file.size}`);
+  if (pc.existing) return {path: pc.existing, reused: true};
+  if (!pc.ok) throw new Error(pc.error);
+  return new Promise((res, rej) => {
+    const xhr = new XMLHttpRequest(), t0 = performance.now();
+    xhr.upload.onprogress = e => { if (e.lengthComputable) onprog && onprog(e.loaded, e.total, (performance.now() - t0) / 1000); };
+    xhr.onload = () => { let j = {}; try { j = JSON.parse(xhr.responseText); } catch {}
+      if (xhr.status !== 200) rej(new Error(j.error || ("Sunucu " + xhr.status))); else res({path: j.file || j.video, data: j}); };
+    xhr.onerror = () => rej(new Error(`${file.name} gönderilemedi (bağlantı koptu). Disk dolu olabilir ya da uygulama kapanmış olabilir; “Bilgisayardan seç” ile kopyalamadan ekleyin.`));
+    xhr.open("POST", url); xhr.send(file);
+  });
+}
+
+async function uploadMany(files) {
+  clearTimeout(timer);
+  $("#up").classList.remove("hidden");
+  const out = [];
+  try {
+    for (const [i, file] of files.entries()) {
+      const r = await upOrReuse(file, "/api/upload?noproject=1&name=" + encodeURIComponent(file.name), (l, t, sec) => {
+        $("#upbar").style.width = (l / t * 100).toFixed(1) + "%";
+        $("#upmsg").textContent = `${files.length > 1 ? `Dosya ${i + 1}/${files.length} · ` : ""}${file.name} · %${(l / t * 100).toFixed(0)} · kalan ~${fmt((t - l) / Math.max(1, l / Math.max(.1, sec)))}`;
+      });
+      out.push({path: r.path, name: file.name});
+    }
+    $("#up").classList.add("hidden");
+    setupProject(out, true);
+  } catch (e) { $("#upmsg").textContent = "Yüklenemedi: " + e.message; }
+}
+
+function health(h) {
+  if (!h) return;
+  $("#health").innerHTML = `<span class="chip ${h.llm ? "ok" : "warn"}">${h.llm ? "✓ Dil modeli hazır" : "LM Studio sunucusu kapalı"}</span>
+
+    ${h.separator ? `<span class="chip ok">✓ Müzik temizleyici</span>`
+                  : `<button class="btn small" id="instsep" title="Mekândaki müziği konuşmanın altından siler">Müzik temizleyiciyi kur</button>`}
+    ${h.fonts ? `<span class="chip ok">✓ Profesyonel yazı tipleri</span>`
+              : `<button class="btn small" id="instfont" title="Ekran yazıları için ücretsiz profesyonel yazı tipleri">Yazı tipi paketini kur</button>`}`;
+  const bf = $("#instfont");
+  if (bf) bf.onclick = async () => {
+    if (!confirm("Ücretsiz profesyonel yazı tipleri indirilecek (Google Fonts, SIL Açık Yazı Tipi Lisansı; Anton, Bebas Neue, Montserrat, Poppins, Oswald — toplam ~2 MB). YouTube'da en çok kullanılan başlık yazı tipleri. Devam edilsin mi?")) return;
+    try { await api("/api/run", {action: "install_assets"}); toast("Yazı tipleri indiriliyor"); } catch (e) { toast(e.message); }
+  };
+  const b = $("#instsep");
+  if (b) b.onclick = installSeparator;
+}
+
+async function installSeparator() {
+  if (!confirm("Müzik temizleyici (Demucs + PyTorch, ücretsiz) indirilip kurulacak: yaklaşık 3 GB, 5-20 dakika.\n\nKurulunca mekândaki müzik ve gürültü konuşmanın altından ayrılır; yazıya dökme ve kesimler de temiz sesle yapılır. Devam edilsin mi?")) return;
+  try { await api("/api/run", {action: "install_separator"}); toast("Kurulum başladı; ilerlemeyi iş kutusunda görebilirsin"); } catch (e) { toast(e.message); }
+}
+
+/* ------------------------------------------------------------------ project */
+let lastKey = "";
+async function project(name) {
+  const app = $("#app");
+  let s;
+  try { s = await api("/api/state?p=" + encodeURIComponent(name)); } catch (e) { app.innerHTML = `<p><a href="#/">← Videolarım</a></p><div class="note err">${esc(e.message)}</div>`; return; }
+  const job = s.jobs.current, mine = job && job.project === name, running = job && (job.state === "running" || job.state === "paused");
+  const key = JSON.stringify([s.settings?.options?.motor, s.plan?.created, s.shorts?.file, s.shorts?.duration, s.package?.meta?.titles, s.qa_premiere, job?.state, job?.id]);
+  if (key !== lastKey || !$("#jobbox")) { lastKey = key; window.__v = Date.now(); renderProject(app, s); }
+  updateJob(job, mine, running);
+  schedule(() => project(name), running);
+}
+
+function updateJob(job, mine, running) {
+  const box = $("#jobbox"); if (!box) return;
+  const active = job && (job.state === "running" || job.state === "paused");
+  document.querySelectorAll("[data-run]").forEach(b => b.disabled = !!active);
+  const show = (id, on) => $(id).classList.toggle("hidden", !on);
+  show("#jpause", mine && job.state === "running"); show("#jresume", mine && job.state === "paused"); show("#jstop", mine && active);
+  if (!job || (!mine && !running)) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  $("#jobbar").style.width = ((job.progress || 0) * 100).toFixed(1) + "%";
+  const label = ACTION_NAMES[job.action] || job.action;
+  if (!mine && !job.project) {   // app-wide job (e.g. installing the music cleaner): show its own progress
+    $("#jobmsg").innerHTML = job.state === "error" ? `<span style="color:var(--err)"><b>${esc(label)} başarısız:</b> ${esc(job.error)}</span>` :
+      job.state === "done" ? `<span style="color:var(--ok)"><b>${esc(label)} tamamlandı.</b> Uygulamayı “KURGU MASASI AÇ” ile bir kez kapatıp aç, sonra işi yeniden başlat.</span>` :
+      `<b>${esc(label)}</b> · ${esc(job.message)} · %${Math.round((job.progress || 0) * 100)}` +
+      (/PyTorch/.test(job.message || "") ? `<br><span class="small muted">PyTorch büyük bir paket (2,8 GB): indirildikten sonra açılıp kurulurken ekranda hareket olmadan 5-15 dakika sürebilir. Kapatma, bekle.</span>` : "");
+    return;
+  }
+  $("#jobmsg").innerHTML = !mine ? `Başka bir proje için iş çalışıyor: <b>${esc(job.project || "")}</b>` :
+    job.state === "error" ? `<span style="color:var(--err)"><b>${esc(label)} başarısız:</b> ${esc(job.error)}</span>` :
+    job.state === "done" ? `<span style="color:var(--ok)"><b>${esc(label)} tamamlandı.</b></span>` +
+      ((job.result && job.result.sorunlar) ? `<br><span style="color:var(--warn)">Atlanan: ${esc(job.result.sorunlar.join(" · "))}</span>` : "") :
+    job.state === "stopped" ? `<b>${esc(label)} durduruldu.</b> Yeniden başlatmak için düğmeye bas; biten adımlar önbellekten hızlı geçer.` :
+    job.state === "paused" ? `<b>${esc(label)} duraklatıldı</b> · ${esc(job.message)} · %${Math.round((job.progress || 0) * 100)}` :
+    `<b>${esc(label)}</b> · ${esc(job.message)} · %${Math.round((job.progress || 0) * 100)}`;
+  if (mine && job.uyari && job.uyari.length) {
+    $("#jobmsg").innerHTML += `<br><span style="color:var(--warn)">⚠ ${esc(job.uyari.join(" · "))}</span>` +
+      (/kurulu değil/.test(job.uyari.join(" ")) && !active ? ` <button class="btn small" id="instsep2">Müzik temizleyiciyi şimdi kur</button>` : "");
+    const b2 = $("#instsep2"); if (b2) b2.onclick = installSeparator;
+  }
+}
+
+function introStrip(s) {
+  const it = s.intro;
+  if (!it || !it.shots || !it.shots.length) return "";
+  return `<div style="margin-top:12px"><h3 style="margin:0 0 6px">İntro çekimleri (${it.shots.length})</h3>
+    <p class="small muted" style="margin:0 0 8px">Beğenmediğin çekimin üstündeki × ile çıkar; sonra “Video”yu yeniden çalıştır, yerine sıradaki en iyi çekim gelir.${it.excluded && it.excluded.length ? ` · ${it.excluded.length} çekim çıkarılmış <button class="btn small" data-introclear="1">Hepsini geri al</button>` : ""}</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap">${it.shots.map(sh => `<div style="position:relative;width:160px">
+      ${sh.thumb ? `<img src="${fileUrl(sh.thumb)}" style="width:160px;height:90px;object-fit:cover;border-radius:8px;display:block" alt="">` : `<div style="width:160px;height:90px;border-radius:8px;background:#222"></div>`}
+      <button class="x" style="position:absolute;top:4px;right:4px" title="İntroda kullanma" data-introx="${esc(sh.key)}">×</button>
+      <div class="small muted" style="margin-top:2px">${esc(sh.motion === "smooth" ? "yumuşak hareket" : "sabit")}</div></div>`).join("")}</div></div>`;
+}
+
+function renderProject(app, s) {
+  const st = s.settings || {}, pl = s.plan, sh = s.shorts, pk = s.package, meta = pk?.meta;
+  const qp = s.qa_premiere && (s.qa_premiere.problems ? s.qa_premiere : s.qa_premiere.Premiere || s.qa_premiere);
+  app.innerHTML = `
+  <div class="stack">
+    <p class="small"><a href="#/">← Videolarım</a></p>
+    <div class="row">
+      <div><h1>${esc(st.title || s.name)}</h1><div class="muted small">${esc((st.camera_files || []).map(f => f.split(/[\\/]/).pop()).join(", "))}</div></div>
+      <span class="spacer"></span>
+      <button class="btn" data-run="all" title="Onay beklemeden her şeyi sırayla yapar">Hepsini tek seferde</button>
+    </div>
+    <div class="card">
+      <div class="row" style="gap:12px;margin-bottom:16px">
+        <b>Kurgu motoru:</b>
+        <div class="seg" id="motor">${[["kurgu", "Kurgu Masası"], ["karma", "Karma (yazılar HyperFrames)"], ["hyperframes", "HyperFrames (hepsi)"]]
+          .map(([v, l]) => `<button data-v="${v}" class="${((st.options || {}).motor || "kurgu") === v ? "on" : ""}">${l}</button>`).join("")}</div>
+        <span class="small muted" id="motornote">${{kurgu: "Kendi motorumuz: renk, kamera oyunları, abone animasyonu, altyazı.",
+          karma: "Kesim ve kamera bizden; başlık, fiyat ve listeleri HyperFrames çizer. Ayrı klasöre çıkar.",
+          hyperframes: "Videoyu baştan sona HyperFrames kurar ve çizer (~1,5-3 saat). Renk düzeltme, abone animasyonu ve altyazı yok. Ayrı klasöre çıkar."}[(st.options || {}).motor || "kurgu"]}</span>
+      </div>
+      <div class="row" style="gap:12px">
+        <button class="btn ${pl ? "" : "primary"} big" data-run="draft">1 · Taslak kesim + önizleme</button>
+        <span class="muted">→</span>
+        <span class="chip ${pl ? "ok" : ""}">2 · Kesimleri incele</span>
+        <span class="muted">→</span>
+        <button class="btn ${pl ? "primary" : ""} big" data-run="video" ${pl ? "" : "disabled"}>3 · Onayla ve Premiere'de kurgula</button>
+      </div>
+      <div class="row small" style="margin-top:12px">
+        <span class="muted">İsteğe bağlı:</span>
+        <button class="btn" data-run="shorts" ${pl ? "" : "disabled"}>Shorts</button>
+        <button class="btn" data-run="package" ${pl ? "" : "disabled"}>Kapak kareleri</button>
+        <button class="btn" data-run="youtube_text" ${pl ? "" : "disabled"}>Başlık ve açıklama</button>
+        <button class="btn" data-run="archive" ${s.kurgu ? "" : "disabled"}>Klasörü güncelle</button>
+      </div>
+    </div>
+    ${s.archive ? `<div class="card" style="border-color:var(--ok)"><div class="row"><div><h2 style="margin:0">✓ Hazır: YouTube klasörü</h2>
+      <div class="muted small">${esc(s.archive.folder)}</div></div><span class="spacer"></span>
+      <button class="btn primary big" id="openfolder">Klasörü aç</button></div>
+      <p class="small muted" style="margin:10px 0 0">İçinde: kurgulanmış video, Shorts, kapak için 6 kare ve transkript.</p></div>` : ""}
+    <div class="card hidden" id="jobbox"><div class="bar"><i id="jobbar"></i></div>
+      <div class="row" style="margin-top:10px"><p style="margin:0;flex:1" id="jobmsg"></p>
+        <button class="btn" id="jpause">Duraklat</button><button class="btn" id="jresume">Devam et</button>
+        <button class="btn" id="jstop" style="color:var(--err)">Durdur</button></div></div>
+
+    <section class="card" id="media"></section>
+
+    <section class="card">
+      <h2>1. Kurgu</h2>
+      ${pl ? `
+        <div class="grid g3">
+          <div class="stat"><b>${fmt(pl.stats.source_s)} → ${fmt(pl.stats.timeline_s)}</b><span>ham kayıt → kurgu</span></div>
+          <div class="stat"><b>${Object.values(pl.stats.by_rule || {}).reduce((a, r) => a + r.count, 0)}</b><span>kesim (${fmt(pl.stats.removed_s)} çıkarıldı)</span></div>
+          <div class="stat"><b>${pl.sequence.width}×${pl.sequence.height}</b><span>${pl.sequence.fps.toFixed(2)} fps</span></div>
+        </div>
+        ${reviewBlock(s)}
+        ${s.kurgu ? `<div style="margin-top:16px"><h3>Son kurgu</h3><video controls preload="metadata" style="width:100%;border-radius:10px;background:#000" src="${fileUrl(s.kurgu.file)}"></video>
+          ${lane(s.director, s.kurgu.duration)}
+          <p class="small muted">${fmt(s.kurgu.duration)} · ${s.kurgu.graphics.callouts.length} başlık yazısı · ${s.kurgu.graphics.camfx || 0} kamera oyunu · ${s.kurgu.graphics.zoom_segments} yakınlaştırma · ${esc(s.kurgu.retouch?.note || "")} · ${s.kurgu.engine === "premiere" ? "kendi motorumla üretildi + Premiere inceleme projesi" + (s.kurgu.premiere?.check?.ok === false ? " (kontrol: " + esc(s.kurgu.premiere.check.problems.join("; ")) + ")" : "") : "hızlı motorla üretildi"}${s.kurgu.engine_note ? " · " + esc(s.kurgu.engine_note) : ""}${s.kurgu.graphics.warning ? " · " + esc(s.kurgu.graphics.warning) : ""}</p>
+          ${introStrip(s)}
+          ${s.kurgu.director?.options?.capcut ? `<p class="small muted">CapCut için: videoyu CapCut'a at, rötuşu yap; dışa aktarırken çözünürlük <b>2K/1440p</b>, kare hızı <b>30</b>, bit hızı <b>Yüksek</b> seç (YouTube'da daha net görünür).</p>` : ""}</div>` : ""}
+        <p style="margin:16px 0 0">${qp ? (qp.ok ? `<span class="chip ok">✓ Premiere'de kuruldu</span> <span class="muted">Sekans: “${esc(pl.sequence.name)}”</span>`
+            : `<span class="chip err">Premiere</span> ${esc((qp.problems || []).join(" · "))}`) : `<span class="muted">Premiere'e henüz kurulmadı.</span>`}</p>`
+        : `<p class="muted">Henüz kurgu yok. “1 · Taslak kesim + önizleme” ile başla.</p>`}
+    </section>
+
+    <section class="card">
+      <h2>2. Shorts</h2>
+      ${sh ? `<div class="short">
+          <video class="vert" controls preload="metadata" src="${fileUrl(sh.file)}"></video>
+          <div class="stack">
+            <div><h3>${esc(sh.pick?.title || "Shorts")}</h3><div class="muted">${fmt(sh.duration)} · ${sh.width}×${sh.height}</div></div>
+            ${sh.hook_text ? `<div><div class="small muted">Açılış (kanca)</div><div>“${esc(sh.hook_text)}”</div></div>` : ""}
+            ${(sh.parts || []).length ? `<div><div class="small muted">Kurgu akışı</div><ol style="margin:4px 0 0;padding-left:20px">${sh.parts.map(p =>
+              `<li><b>${esc({hook: "Kanca", "giriş": "Giriş", "gelişme": "Gelişme", "sonuç": "Sonuç"}[p.kind] || p.kind)}</b> · ${esc(p.text.length > 110 ? p.text.slice(0, 110) + "…" : p.text)}</li>`).join("")}
+              <li><b>Kapanış</b> · “Videonun uzun versiyonu YouTube kanalımda”</li></ol></div>` : ""}
+            <div><div class="small muted">Neden böyle</div><div>${esc(sh.pick?.reason || "")}</div></div>
+            ${sh.pick?.warning ? `<div class="note">${esc(sh.pick.warning)}</div>` : ""}
+            ${sh.face_note ? `<div class="note">${esc(sh.face_note)}</div>` : ""}
+            <div><a class="btn" href="${fileUrl(sh.file, 1)}">İndir</a></div>
+          </div></div>`
+        : `<p class="muted">Videonun merak uyandıran anlarından kanca + giriş + gelişme + sonuç akışında 50–90 saniyelik dikey özet hazırlanır; sonunda “Videonun uzun versiyonu YouTube kanalımda” yazısı çıkar.</p>`}
+    </section>
+
+    <section class="card">
+      <h2>3. Kapak için kareler ve transkript</h2>
+      ${pk?.frames?.length ? `
+        <p class="small muted" style="margin:0 0 12px">Yazısız, renk düzeltmeli ve rötuşlu 6 kare. Kapağı ve başlıkları ChatGPT'de hazırlamak için kullan.</p>
+        <div class="grid g3">${pk.frames.map((f, i) => `<div class="thumb stack"><img src="${fileUrl(f.file)}" alt="">
+          <div class="row"><span class="small muted">Kare ${i + 1} · ${fmt(f.t)}</span><span class="spacer"></span><a class="btn" href="${fileUrl(f.file, 1)}">İndir</a></div></div>`).join("")}</div>
+        <div class="row" style="margin-top:14px">
+          <a class="btn primary" href="${fileUrl(pk.transcript_file, 1)}">Transkript (zamanlı)</a>
+          ${pk.transcript_plain ? `<a class="btn" href="${fileUrl(pk.transcript_plain, 1)}">Transkript (düz metin)</a>` : ""}
+          <a class="btn" href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT'yi aç</a>
+        </div>`
+        : `<p class="muted">Kurgudan sonra yüzün en iyi göründüğü 6 kare (yazısız) ve transkript burada olur.</p>`}
+    </section>
+
+    <section class="card stack">
+      <details id="det"><summary>Ayrıntılar (transkript, kesim kararları, kalite kontrolü)</summary>
+        <div class="stack" style="margin-top:16px" id="detbody"></div>
+      </details>
+      <div>
+        <h3>Düzeltme iste</h3>
+        <div class="grid g2" style="grid-template-columns: 160px 1fr">
+          <input class="txt" id="fbtc" placeholder="Zaman (ör. 03:42)">
+          <input class="txt" id="fbtext" placeholder="Ne değişsin? (ör. bu tekrar kalmış)">
+        </div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="fbsend">Gönder</button>
+          <span class="small muted">${(s.feedback || []).length} istek kayıtlı</span></div>
+      </div>
+    </section>
+  </div>`;
+  window.__hasPlan = !!s.plan;
+  renderMedia(s.name, s.media);
+  app.querySelectorAll("[data-listen]").forEach(b => b.onclick = () => {
+    const [f, t, d] = b.dataset.listen.split("|"); const v = $("#rvplayer");
+    v.style.display = "block"; v.src = fileUrl(f) + `#t=${Math.max(0, +t - 1.5).toFixed(2)},${(+t + +d + 1.5).toFixed(2)}`; v.play();
+  });
+  app.querySelectorAll("[data-ov]").forEach(b => b.onclick = async () => {
+    const [key, value] = b.dataset.ov.split("|");
+    try { await api("/api/override", {project: s.name, key, value}); b.closest("tr").style.opacity = .5;
+      toast("Kaydedildi · uygulamak için “Değişiklikleri uygula”"); } catch (e) { toast(e.message); }
+  });
+  app.querySelectorAll("[data-introx]").forEach(b => b.onclick = async () => {
+    try { await api("/api/intro_exclude", {project: s.name, key: b.dataset.introx}); b.closest("div").style.opacity = 0.3;
+          toast("Bu çekim introda kullanılmayacak; “Video”yu yeniden çalıştırınca yerine başka çekim gelir"); } catch (e) { toast(e.message); }
+  });
+  app.querySelectorAll("[data-introclear]").forEach(b => b.onclick = async () => {
+    try { await api("/api/intro_exclude", {project: s.name, key: ""}); toast("Çıkarılan çekimler geri alındı"); } catch (e) { toast(e.message); }
+  });
+  app.querySelectorAll("[data-run]").forEach(b => b.onclick = async () => {
+    try { await api("/api/run", {action: b.dataset.run, project: s.name}); lastKey = ""; project(s.name); } catch (e) { toast(e.message); }
+  });
+  app.querySelectorAll("#motor button").forEach(b => b.onclick = async () => {
+    try { await api("/api/media", {project: s.name, kind: "", action: "options", options: {motor: b.dataset.v}});
+      toast("Kurgu motoru: " + b.textContent); lastKey = ""; project(s.name); } catch (e) { toast(e.message); }
+  });
+  const jc = cmd => async () => { try { await api("/api/job", {cmd}); lastKey = ""; project(s.name); } catch (e) { toast(e.message); } };
+  $("#jpause").onclick = jc("pause"); $("#jresume").onclick = jc("resume");
+  $("#jstop").onclick = () => { if (confirm("İş durdurulsun mu?")) jc("stop")(); };
+  app.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copy(b.dataset.copy));
+  const cgc = $("#cgcopy"); if (cgc) cgc.onclick = () => copy($("#cgprompt").value);
+  const cgs = $("#cgsave"); if (cgs) cgs.onclick = async () => {
+    const text = $("#cganswer").value.trim(); if (!text) { toast("Önce ChatGPT'nin cevabını yapıştır"); return; }
+    try { const r = await api("/api/chatgpt", {project: s.name, text}); $("#cgmsg").textContent = "Kaydedildi · klasör " + r.archive; lastKey = ""; setTimeout(() => project(s.name), 800); }
+    catch (e) { $("#cgmsg").textContent = e.message; $("#cgmsg").style.color = "var(--err)"; }
+  };
+  const sendCover = (L, file) => {
+    if (!file) return;
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => { let j = {}; try { j = JSON.parse(xhr.responseText); } catch {}
+      if (xhr.status !== 200) { toast(j.error || "Yüklenemedi"); return; } toast("Kapak " + L + " eklendi"); lastKey = ""; project(s.name); };
+    xhr.open("POST", `/api/upload?project=${encodeURIComponent(s.name)}&kind=kapak&label=${L}&name=${encodeURIComponent("kapak_" + L + "_" + file.name)}`);
+    xhr.send(file);
+  };
+  app.querySelectorAll("[data-coverpick]").forEach(inp => inp.onchange = e => sendCover(inp.dataset.coverpick, e.target.files[0]));
+  app.querySelectorAll("[data-cover]").forEach(mb => {
+    ["dragenter", "dragover"].forEach(ev => mb.addEventListener(ev, e => { e.preventDefault(); mb.classList.add("over"); }));
+    ["dragleave", "drop"].forEach(ev => mb.addEventListener(ev, e => { e.preventDefault(); mb.classList.remove("over"); }));
+    mb.addEventListener("drop", e => sendCover(mb.dataset.cover, e.dataTransfer.files[0]));
+  });
+  const of = $("#openfolder"); if (of) of.onclick = async () => { try { await api("/api/open", {project: s.name}); toast("Klasör açıldı"); } catch (e) { toast(e.message); } };
+  app.querySelectorAll("[data-copy-el]").forEach(b => b.onclick = () => copy($("#" + b.dataset.copyEl).value));
+  $("#fbsend").onclick = async () => {
+    const text = $("#fbtext").value.trim(); if (!text) return;
+    try { await api("/api/feedback", {project: s.name, timecode: $("#fbtc").value.trim(), text}); $("#fbtext").value = ""; toast("Kaydedildi"); } catch (e) { toast(e.message); }
+  };
+  $("#det").addEventListener("toggle", e => { if (e.target.open) details(s); }, {once: true});
+}
+
+/* ------------------------------------------------------------------ cut review */
+const RULES = {pause: "Duraklama", filler: "Dolgu sesi", nonspeech: "Kelimesiz ses (öksürük, nefes)", repetition: "Tekrar",
+  restart: "Yeniden başlama", paraphrase: "Aynı şeyi başka sözle", paraphrase_review: "Benzer cümle (kontrol)",
+  complete_kept: "Tam cümle tekrarı (korundu)", emphasis_kept: "Vurgu tekrarı (korundu)", long_wait: "Uzun bekleme"};
+const CONF = {"yüksek": "ok", "orta": "warn", "düşük": "err"};
+function reviewBlock(s) {
+  const pl = s.plan; if (!pl) return "";
+  const rv = pl.review || [];
+  const ac = pl.auto_counts || {};
+  const pv = s.preview;
+  return `<div style="margin-top:18px">
+    ${pv ? `<h3>Hızlı önizleme <span class="small muted">(efektsiz, düşük çözünürlük · ${fmt(pv.duration)})</span></h3>
+      <video controls preload="metadata" style="width:100%;max-width:720px;border-radius:10px;background:#000" src="${fileUrl(pv.file)}"></video>` : ""}
+    <div class="row" style="margin:16px 0 8px"><h3 style="margin:0">Kesim kararları</h3><span class="spacer"></span>
+      <button class="btn primary" data-run="replan">Değişiklikleri uygula + önizlemeyi yenile</button></div>
+    <p class="small muted" style="margin:0 0 8px">Otomatik ve yüksek eminlikle: ${ac.pause || 0} duraklama, ${ac.filler || 0} dolgu sesi kesildi.
+      Aşağıdakileri dinleyip karar verin. <b>Öneri</b> olanlar siz “Kes” demedikçe uygulanmaz.</p>
+    <video id="rvplayer" controls style="width:100%;max-width:480px;border-radius:8px;background:#000;display:none"></video>
+    <div class="scroll"><table><tr><th>Zaman</th><th>Tür</th><th>Ne</th><th>Eminlik</th><th>Durum</th><th></th></tr>
+    ${rv.filter(r => r.rule !== "filler").map(r => `<tr>
+      <td class="small" style="white-space:nowrap">${fmt(r.start)}</td>
+      <td class="small">${esc(RULES[r.rule] || r.rule)}</td>
+      <td class="small">${esc((r.words || []).join(" ").slice(0, 120) || r.reason.slice(0, 120))}</td>
+      <td><span class="chip ${CONF[r.confidence] || ""}">${esc(r.confidence)}</span></td>
+      <td class="small">${r.applied ? "Kesildi" : (r.suggested ? "Öneri" : "Korundu")}${r.overridden ? " · elle" : ""}</td>
+      <td style="white-space:nowrap"><button class="btn" data-listen="${esc(r.file)}|${r.file_t}|${(r.end - r.start).toFixed(2)}">Dinle</button>
+        ${r.applied ? `<button class="btn" data-ov="${esc(r.key)}|keep">Geri al</button>` : `<button class="btn" data-ov="${esc(r.key)}|cut">Kes</button>`}
+        ${r.overridden ? `<button class="btn" data-ov="${esc(r.key)}|reset">Sıfırla</button>` : ""}</td></tr>`).join("") ||
+      `<tr><td colspan="6" class="muted">İncelenecek karar yok.</td></tr>`}
+    </table></div></div>`;
+}
+
+/* ------------------------------------------------------------------ materials + settings */
+const KINDS = [
+  {k: "kamera", t: "Kamera kayıtları", h: "Birden fazla parça olabilir; çekim zamanına ve adına göre kendiliğinden sıralanır.", acc: "video/*"},
+  {k: "ekran", t: "Ekran kayıtları", h: "Ekran kaydında da sesiniz olmalı (basit bir mikrofon yeter); kamerayla bu sesten eşleşir. Ekrana bakıp bir şey gösterdiğinizde ekran kaydına geçer, siz sol altta kutuda kalırsınız.", acc: "video/*"},
+  {k: "ek", t: "Ek videolar ve fotoğraflar", h: "Mekân görüntüleri, stok video ya da fotoğraf. Uygulama her birinin içine bakıp ne gösterdiğini anlar, çekim sırasına dizer ve konuşmada o konunun geçtiği yere koyar; aynı anlatıma birkaç tane düşerse art arda montaj yapar.", acc: "video/*,image/*"},
+  {k: "muzik", t: "Müzik (kütüphane)", h: "Ek videolar varsa giriş konuşmasından sonra bu müziğin ritmine göre kesilmiş bir tanıtım montajı yapılır; yoksa konuşmanın altında kısık çalar. YouTube Ses Kitaplığı'ndan telifsiz parça indirip buraya bırakabilirsin. Bütün projeler için ortak.", acc: "audio/*"},
+  {k: "ses", t: "Ses efektleri (kütüphane)", h: "Boş bırakırsan uygulamanın hazır efektleri (whoosh, pop, riser) kullanılır. Kendi efektlerini eklersen onlar kullanılır. Bütün projeler için ortak.", acc: "audio/*"},
+];
+const COLORS = {screen: "#1D8FD6", broll: "#16A34A", card: "#E0A100", subscribe: "#E5091A"};
+const EVN = {screen: "Ekran kaydı", broll: "Ek görüntü", card: "Tam ekran kart", subscribe: "Abone ol"};
+function lane(dr, dur) {
+  if (!dr || !dur) return "";
+  const ev = dr.events || [];
+  return `<div style="margin-top:12px"><div class="lane">${ev.map(e => `<i title="${esc(EVN[e.type])} ${fmt(e.t0)}" style="left:${(e.t0 / dur * 100).toFixed(2)}%;width:${((e.t1 - e.t0) / dur * 100).toFixed(2)}%;background:${COLORS[e.type]}"></i>`).join("")}</div>
+    <div style="margin-top:6px">${Object.keys(COLORS).map(k => `<span class="lg"><i style="background:${COLORS[k]}"></i>${EVN[k]} (${ev.filter(e => e.type === k).length})</span>`).join("")}
+    <span class="lg">Ses efekti (${(dr.sfx || []).length})</span></div>
+    ${(dr.notes || []).length ? `<div class="note small" style="margin-top:8px">${dr.notes.map(esc).join("<br>")}</div>` : ""}</div>`;
+}
+function renderMedia(name, m) {
+  const box = $("#media"); if (!box || !m) return;
+  const o = m.options;
+  const seg = (key, opts) => `<div class="seg" data-opt="${key}">${opts.map(([v, l]) => `<button data-v="${v}" class="${String(o[key]) === String(v) ? "on" : ""}">${l}</button>`).join("")}</div>`;
+  const wasOpen = box.querySelector("details") ? box.querySelector("details").open : !window.__hasPlan;
+  box.innerHTML = `<details ${wasOpen ? "open" : ""} style="border:0;padding:0"><summary><h2 style="display:inline">Malzemeler ve ayarlar</h2>
+    <span class="small muted"> · ${m.kamera.length} kamera, ${m.ek.length} ek görüntü, ${m.muzik.length} müzik</span></summary><div style="margin-top:16px">
+    ${(() => { const miss = [...m.kamera, ...m.ekran, ...m.ek].filter(f => !f.ok);
+      return miss.length ? `<div class="note err" style="margin-bottom:16px"><b>${miss.length} dosya bulunamadı</b> (taşınmış ya da silinmiş):
+        ${miss.slice(0, 6).map(f => esc(f.name)).join(", ")}${miss.length > 6 ? "…" : ""}<br>
+        <button class="btn" id="relink" style="margin-top:10px">Yeni yerini göster</button>
+        <span class="small muted"> Taşıdığın klasörden bu dosyalardan birini (ya da hepsini) seç; aynı klasördeki diğerleri de bulunur.</span></div>` : ""; })()}
+    <div class="row" style="gap:22px;margin-bottom:18px">
+      <div><div class="small muted" style="margin-bottom:6px">Premiere inceleme projesi de kurulsun</div>${seg("engine", [["premiere", "Evet (Premiere açılır)"], ["kendi", "Hayır"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Kurgu türü</div>${seg("tur", [["vlog", "Vlog"], ["hikaye", "Konuşmalı hikâye"], ["ekran", "Ekran anlatımı"], ["anlatim", "Masa başı anlatım"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Ekran ne tarafınızda?</div>${seg("screen_side", [["left", "Solumda"], ["right", "Sağımda"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Kurgu yoğunluğu</div>${seg("intensity", [["low", "Düşük"], ["medium", "Orta"], ["high", "Yüksek"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Altyazı</div>${seg("captions", [[true, "Açık"], [false, "Kapalı"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Abone ol hatırlatması</div>${seg("subscribe", [[true, "Açık"], [false, "Kapalı"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Arka plan müziği</div>${seg("music", [[true, "Açık"], [false, "Kapalı"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Müzikli intro (yemek/mekân anlarından)</div>${seg("montage", [[true, "Açık"], [false, "Kapalı"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Sayı sayarken hızlandır (incecik ses + sayaç)</div>${seg("sayma_hizli", [[true, "Açık"], [false, "Kapalı"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Video biçimi</div>${seg("format", [["yatay", "Yatay 16:9 (YouTube)"], ["dikey", "Kaynak gibi"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Çıktı çözünürlüğü</div>${seg("resolution", [["1440", "1440p (YouTube'da daha net)"], ["1080", "1080p (hızlı)"], ["kaynak", "4K (en yavaş)"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Mekân müziğini ve gürültüyü sil</div>${seg("muzik_temizle", [[true, "Açık"], [false, "Kapalı"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Ekran yazıları</div>${seg("yazi_stili", [["karisik", "Anlama göre karışık"], ["bant", "Alt bant"], ["etiket", "Etiket"], ["neon", "Neon"], ["kutu", "Çerçeve"], ["kalem", "Fosforlu kalem"], ["daktilo", "Daktilo"], ["fiyat", "Büyük rakam"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Yazı rengi</div>${seg("renk", [["otomatik", "Her videoya farklı"], ["sari", "Sarı"], ["turkuaz", "Turkuaz"], ["mercan", "Mercan"], ["limon", "Limon"], ["mor", "Mor"], ["turuncu", "Turuncu"], ["pembe", "Pembe"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Cümle ve altyazı efekti</div>${seg("yazi_efekti", [["karisik", "Karışık"], ["karaoke", "Renkli kelime"], ["kutu", "Kutulu kelime"], ["zipla", "Zıplayan kelime"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Kamera oyunları + cümle yazıları</div>${seg("kamera_oyunlari", [[true, "Açık (kaydırma, yakınlaştırma)"], [false, "Kapalı"]])}</div>
+      <div><div class="small muted" style="margin-bottom:6px">Son rötuşu CapCut'ta yapacağım</div>${seg("capcut", [[true, "Evet (en yüksek kalite ana dosya)"], [false, "Hayır"]])}</div>
+    </div>
+    <div class="grid g2">${KINDS.map(K => `<div class="mbox" data-kind="${K.k}">
+      <div class="row"><h3 style="margin:0">${K.t}</h3><span class="chip">${m[K.k].length}</span><span class="spacer"></span>
+        <button class="btn" data-native="${K.k}">Bilgisayardan seç</button></div>
+      <div class="small muted">${K.h} Seçilen dosyalar olduğu yerde kullanılır (kopyalanmaz). Sürüklersen kopyalanır.</div>
+      ${K.k === "ek" ? `<input class="txt small" style="padding:6px 10px" id="eknote" placeholder="Toplu açıklama (isteğe bağlı): ör. dükkânın içinden görüntüler">` : ""}
+      <div class="small" data-upmsg="${K.k}"></div>
+      <div>${m[K.k].map((f, i) => `<div class="mitem">
+        ${K.k === "ek" ? (/\.(jpe?g|png|webp|bmp)$/i.test(f.name) ? `<img src="${fileUrl(f.path)}" alt="">` : `<span class="chip">video</span>`) : ""}
+        <div style="flex:1;min-width:0"><div class="nm" title="${esc(f.path)}">${esc(f.name)}</div>
+          ${K.k === "ek" ? `<input class="txt small" style="margin-top:6px;padding:6px 10px" placeholder="Ne gösteriyor? (ör. kahve makinesi)" value="${esc(f.note)}" data-note="${i}">
+            ${f.auto ? `<div class="small muted" style="margin-top:4px">Görüntüde: ${esc(f.auto)}</div>` : ""}` : ""}
+          ${f.ok ? "" : `<span class="small" style="color:var(--err)">dosya bulunamadı</span>`}</div>
+        <span class="small muted">${f.mb} MB</span>
+        <button class="x" title="Kaldır" data-rm="${K.k}|${i}|${esc(f.path)}">×</button></div>`).join("") || `<div class="small muted">Henüz dosya yok.</div>`}</div>
+    </div>`).join("")}</div>
+    <p class="small muted" style="margin:14px 0 0">Malzeme ya da ayar değişince adımları yeniden çalıştır. Biten işler önbellekten hızlı geçer.</p></div></details>`;
+  box.querySelectorAll("[data-opt]").forEach(g => g.querySelectorAll("button").forEach(b => b.onclick = async () => {
+    let v = b.dataset.v; if (v === "true") v = true; else if (v === "false") v = false;
+    try { const r = await api("/api/media", {project: name, kind: "", action: "options", options: {[g.dataset.opt]: v}}); renderMedia(name, r); toast("Ayar kaydedildi"); } catch (e) { toast(e.message); }
+  }));
+  box.querySelectorAll("[data-rm]").forEach(b => b.onclick = async () => {
+    const [kind, i, path] = b.dataset.rm.split("|");
+    if (!confirm(`“${path.split(/[\\/]/).pop()}” kaldırılsın mı?`)) return;
+    try { renderMedia(name, await api("/api/media", {project: name, kind, action: "remove", index: +i, path})); } catch (e) { toast(e.message); }
+  });
+  box.querySelectorAll("[data-note]").forEach(inp => inp.onchange = async () => {
+    try { await api("/api/media", {project: name, kind: "ek", action: "note", index: +inp.dataset.note, note: inp.value}); toast("Kaydedildi"); } catch (e) { toast(e.message); }
+  });
+  if ($("#relink")) $("#relink").onclick = async () => {
+    const b = $("#relink"); b.disabled = true; b.textContent = "Dosya seçme penceresi açık…";
+    try {
+      const r = await api("/api/relink", {project: name});
+      renderMedia(name, r.media);
+      toast(r.missing.length ? `${r.found} dosya bulundu, ${r.missing.length} hâlâ eksik` : `${r.found} dosyanın yeni yeri kaydedildi`);
+    } catch (e) { toast(e.message); b.disabled = false; b.textContent = "Yeni yerini göster"; }
+  };
+  box.querySelectorAll("[data-native]").forEach(b => b.onclick = async () => {
+    const kind = b.dataset.native; b.disabled = true; const t = b.textContent; b.textContent = "Pencere açık…";
+    try {
+      const r = await api("/api/pick", {kind: kind === "ek" ? "ek" : (kind === "muzik" || kind === "ses") ? "ses" : "video"});
+      if (r.files.length) {
+        const note = kind === "ek" && $("#eknote") ? $("#eknote").value.trim() : "";
+        renderMedia(name, await api("/api/media", {project: name, kind, action: "add_existing", paths: r.files.map(f => f.path), note}));
+        toast(`${r.files.length} dosya eklendi`);
+      }
+    } catch (e) { toast(e.message); }
+    finally { b.disabled = false; b.textContent = t; }
+  });
+  box.querySelectorAll(".mbox").forEach(mb => {
+    ["dragenter", "dragover"].forEach(ev => mb.addEventListener(ev, e => { e.preventDefault(); mb.classList.add("over"); }));
+    ["dragleave", "drop"].forEach(ev => mb.addEventListener(ev, e => { e.preventDefault(); mb.classList.remove("over"); }));
+    mb.addEventListener("drop", e => uploadMedia(name, mb.dataset.kind, [...e.dataTransfer.files]));
+  });
+}
+async function uploadMedia(name, kind, files) {
+  const msg = () => document.querySelector(`[data-upmsg="${kind}"]`);
+  const note = kind === "ek" && $("#eknote") ? $("#eknote").value.trim() : "";
+  let last = null;
+  for (const [n, file] of files.entries()) {
+    try {
+      const r = await upOrReuse(file, `/api/upload?project=${encodeURIComponent(name)}&kind=${kind}&name=${encodeURIComponent(file.name)}${note ? "&note=" + encodeURIComponent(note) : ""}`,
+        (l, t) => { if (msg()) msg().textContent = `Yükleniyor ${n + 1}/${files.length}: ${file.name} · %${Math.round(l / t * 100)}`; });
+      last = r.reused ? await api("/api/media", {project: name, kind, action: "add_existing", paths: [r.path], note}) : r.data.media;
+    } catch (e) { toast(`${file.name}: ${e.message}`); }
+  }
+  if (msg()) msg().textContent = "";
+  if (last) { renderMedia(name, last); toast("Eklendi"); }
+}
+
+async function details(s) {
+  const box = $("#detbody");
+  const pl = s.plan, q = s.qa_cut;
+  const names = {pause: "Duraklama", filler: "Dolgu sesi (ııı, eee)", nonspeech: "Öksürük, nefes, gürültü", repetition: "Tekrar", restart: "Yeniden başlama", paraphrase: "Aynı anlam", long_wait: "Uzun bekleme"};
+  let h = "";
+  if (pl) h += `<div><h3>Kesim kuralları</h3><table><tr><th>Kural</th><th>Adet</th><th>Süre</th></tr>${Object.entries(pl.stats.by_rule || {}).map(([k, v]) =>
+    `<tr><td>${names[k] || k}</td><td>${v.count}</td><td>${v.seconds.toFixed(1)} sn</td></tr>`).join("")}</table></div>`;
+  if (q) h += `<div><h3>Kalite kontrolü</h3><p>${q.ok ? '<span class="chip ok">✓ Geçti</span>' : '<span class="chip warn">Kontrol et</span>'}
+    Kesimden kaybolan kelime: <b>${q.real_loss_words ?? "?"}</b> · kalan tekrar: <b>${(q.remaining_repetitions || []).length}</b> ·
+    yeniden yazımda eşleşme %${(q.match_ratio * 100).toFixed(1)}</p></div>`;
+  box.innerHTML = h + `<div><h3>Transkript</h3><p class="small muted">Üstü çizili kelimeler kesildi.</p><div class="words" id="words">Yükleniyor…</div></div>
+    <div><h3>Kararlar</h3><div class="scroll" id="decs">Yükleniyor…</div></div>`;
+  try {
+    const t = await api("/api/transcript?p=" + encodeURIComponent(s.name));
+    const kept = new Set(t.cut.map(w => w.start.toFixed(3)));
+    $("#words").innerHTML = t.source.map(w => `<span class="${kept.has(w.start.toFixed(3)) ? "" : "cut"}" title="${fmt(w.start)}">${esc(w.word)}</span>`).join(" ") || "—";
+  } catch (e) { $("#words").textContent = e.message; }
+  try {
+    const d = await api("/api/decisions?p=" + encodeURIComponent(s.name));
+    $("#decs").innerHTML = `<table>${d.slice(-600).reverse().filter(r => r.action !== "summary").map(r =>
+      `<tr><td class="small muted" style="white-space:nowrap">${r.start != null ? fmt(r.start) : ""}</td><td>${esc(r.reason)}</td></tr>`).join("")}</table>`;
+  } catch (e) { $("#decs").textContent = e.message; }
+}
+
+route();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Kurgu Masası - Python paketleri (geliştiricinin bilgisayarında birlikte çalıştığı doğrulanmış sürümler)
+numpy==2.5.4
+pillow==12.3.0
+scipy==1.18.1
+opencv-python==5.0.0.93
+opencv-contrib-python==5.0.0.93
+mediapipe==1.1.0
+ctranslate2==4.8.3
+faster-whisper==1.2.1
+onnxruntime==1.31.0
+fastembed==0.9.0
+fonttools==4.66.1
+requests==2.34.2
+soundfile==0.14.0
+pytest==9.1.1
