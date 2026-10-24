@@ -161,6 +161,13 @@ async function home() {
     <div class="card">
       <div class="drop" id="drop">
         <h2 style="margin-bottom:6px">Yeni video</h2>
+        <p class="small muted" style="margin:0 0 8px">Ne yapmak istiyorsun?</p>
+        <div class="seg" id="cikis" style="margin:0 auto 10px;flex-wrap:wrap;justify-content:center">
+          ${CIKIS.map(([v, l]) => `<button data-v="${v}" class="${cikisMode() === v ? "on" : ""}">${l}</button>`).join("")}</div>
+        <p class="small muted" id="cikisnote" style="margin:0 0 10px">${CIKIS_NOTE[cikisMode()]}</p>
+        <div class="note" id="cikiswarn" style="max-width:640px;margin:0 auto 12px;text-align:left;${cikisMode() === "yatay" ? "display:none" : ""}">
+          ⚠️ <b>Dikey videolar en fazla 3 dakika olur.</b> YouTube 3 dakikadan uzun dikey videoları Shorts olarak saymaz.
+          Kesilmiş video 3 dakikadan kısaysa tamamı dikey yapılır; daha uzunsa en güçlü anlarından 3 dakikayı aşmayan bir kurgu çıkar.</div>
         <p class="muted">Dosyalar bilgisayarında olduğu yerde kullanılır, <b>kopyalanmaz ve yüklenmez</b> (hızlı, disk dolmaz). Konuşma videosunu ve mekân görüntülerini birlikte seçebilirsin; sonraki adımda hangisinin ne olduğunu gösterirsin.</p>
         <p><button class="btn primary big" id="pickbtn">Bilgisayardan seç</button></p>
         <p class="small muted">Sürükle-bırak da olur ama o zaman dosyalar uygulamanın klasörüne kopyalanır (yavaş, yer kaplar).</p>
@@ -200,6 +207,12 @@ async function home() {
     if (!confirm(`“${b.dataset.del}” projesi tamamen silinsin mi?\n\nProjenin klasöründeki her şey (kurgu, çıktılar, projeye kopyalanmış videolar) silinir ve geri alınamaz. Bilgisayarındaki asıl videolara ve ham klasörüne dokunulmaz.`)) return;
     try { const r = await api("/api/delete_project", {project: b.dataset.del}); toast(`Silindi, ${r.freed_gb} GB açıldı`); home(); } catch (err) { toast(err.message); }
   });
+  app.querySelectorAll("#cikis button").forEach(b => b.onclick = () => {
+    setCikis(b.dataset.v);
+    app.querySelectorAll("#cikis button").forEach(x => x.classList.toggle("on", x === b));
+    $("#cikisnote").textContent = CIKIS_NOTE[b.dataset.v];
+    $("#cikiswarn").style.display = b.dataset.v === "yatay" ? "none" : "";
+  });
   $("#pickbtn").onclick = async () => {
     const btn = $("#pickbtn"); btn.disabled = true; btn.textContent = "Dosya seçme penceresi açık…";
     try { const r = await api("/api/pick", {kind: "video"}); if (r.files.length) setupProject(r.files); }
@@ -217,6 +230,14 @@ async function home() {
   drop.addEventListener("drop", e => { const f = [...e.dataTransfer.files]; if (f.length) uploadMany(f); });
   schedule(home, running);
 }
+/* What the new project makes: the 16:9 edit (+ Shorts) or one vertical video of at most 3 minutes. */
+const CIKIS = [["yatay", "Yatay video edit"], ["yataydan_dikey", "Yataydan dikey video çıkar"], ["dikey", "Dikey video yükle"]];
+const CIKIS_NOTE = {
+  yatay: "Yatay (16:9) YouTube videosu kurgulanır; yanında Shorts, kapak kareleri, başlık ve açıklama da hazırlanır.",
+  yataydan_dikey: "Yatay çektiğin videodan, yüzü takip ederek dikey (9:16) bir video çıkarılır.",
+  dikey: "Dikey çektiğin video, dikey olarak kurgulanır (9:16)."};
+function cikisMode() { try { return localStorage.getItem("cikis") || "yatay"; } catch (e) { return "yatay"; } }
+function setCikis(v) { try { localStorage.setItem("cikis", v); } catch (e) {} }
 const chip = (on, label) => `<span class="chip ${on ? "ok" : ""}">${on ? "✓ " : ""}${label}</span>`;
 
 /* Second step of a new project: say which file is the talk and which are venue/extra shots. */
@@ -236,7 +257,10 @@ async function setupProject(files, needInfo) {
     if (vids.length) roles[vids.sort((a, b) => (b[0].duration || b[0].gb || 0) - (a[0].duration || a[0].gb || 0))[0][1]] = "kamera";
   }
   const dur = f => f.duration != null ? fmt(f.duration) : (isImg(f) ? "fotoğraf" : "");
-  box.innerHTML = `<div style="margin-top:18px"><h3>Hangisi ne?</h3>
+  const cm = cikisMode();
+  box.innerHTML = `<div style="margin-top:18px"><p class="chip ok" style="display:inline-block">${esc(CIKIS.find(c => c[0] === cm)[1])}</p>
+    ${cm !== "yatay" ? `<p class="small" style="color:var(--warn,#e0a100)">Bu projeden en fazla 3 dakikalık dikey video çıkar (YouTube daha uzun dikey videoları Shorts saymaz).</p>` : ""}
+    <h3>Hangisi ne?</h3>
     <p class="small muted">Konuşma kaydı = kameraya anlattığın video (birden fazla parça olabilir, çekim sırasına dizilir). Ek görüntü = mekânın içi, b-roll, fotoğraf; müzikli tanıtımda ve konuşmada ilgili yerde kullanılır. İkisi de = konuşma kaydı, ayrıca tamamı intro için taranır. (Konuşma kayıtlarındaki yemek/mekân gösterdiğin anlar zaten kendiliğinden taranır.)</p>
     <div class="list">${files.map((f, i) => `<div><span style="flex:1;min-width:0"><b>${esc(f.name)}</b>
       <span class="small muted"> · ${dur(f)}${f.gb ? " · " + f.gb + " GB" : ""}</span></span>
@@ -259,7 +283,8 @@ async function setupProject(files, needInfo) {
     const intro = files.filter((f, i) => roles[i] === "ikisi").map(f => f.path);
     if (!videos.length) { toast("En az bir konuşma kaydı seçin"); return; }
     try {
-      const p = await api("/api/project", {videos, broll, intro, title: $("#sp_title").value.trim() || null, note: $("#sp_note").value.trim()});
+      const p = await api("/api/project", {videos, broll, intro, title: $("#sp_title").value.trim() || null, note: $("#sp_note").value.trim(),
+                                           cikis: cikisMode()});
       box.classList.add("hidden"); box.innerHTML = "";
       location.hash = "#/p/" + encodeURIComponent(p.name);
     } catch (e) { toast(e.message); }
@@ -388,7 +413,10 @@ function renderProject(app, s) {
       <button class="btn" data-run="all" title="Onay beklemeden her şeyi sırayla yapar">Hepsini tek seferde</button>
     </div>
     <div class="card">
-      <div class="row" style="gap:12px;margin-bottom:16px">
+      ${((st.options || {}).cikis || "yatay") !== "yatay" ? `<div class="note" style="margin-bottom:14px">
+        <b>${esc(CIKIS.find(c => c[0] === st.options.cikis)[1])}</b> · Ürün: en fazla <b>3 dakikalık dikey video</b> (9:16).
+        Kesilmiş video 3 dakikaya sığarsa tamamı, sığmazsa en güçlü anları kullanılır. YouTube 3 dakikadan uzun dikey videoları Shorts saymaz.</div>` : ""}
+      <div class="row" style="gap:12px;margin-bottom:16px;${((st.options || {}).cikis || "yatay") !== "yatay" ? "display:none" : ""}">
         <b>Kurgu motoru:</b>
         <div class="seg" id="motor">${[["kurgu", "Kurgu Masası"], ["karma", "Karma (yazılar HyperFrames)"], ["hyperframes", "HyperFrames (hepsi)"]]
           .map(([v, l]) => `<button data-v="${v}" class="${((st.options || {}).motor || "kurgu") === v ? "on" : ""}">${l}</button>`).join("")}</div>
@@ -401,11 +429,11 @@ function renderProject(app, s) {
         <span class="muted">→</span>
         <span class="chip ${pl ? "ok" : ""}">2 · Kesimleri incele</span>
         <span class="muted">→</span>
-        <button class="btn ${pl ? "primary" : ""} big" data-run="video" ${pl ? "" : "disabled"}>3 · Onayla ve Premiere'de kurgula</button>
+        <button class="btn ${pl ? "primary" : ""} big" data-run="video" ${pl ? "" : "disabled"}>${((st.options || {}).cikis || "yatay") !== "yatay" ? "3 · Dikey videoyu hazırla" : "3 · Onayla ve Premiere'de kurgula"}</button>
       </div>
       <div class="row small" style="margin-top:12px">
         <span class="muted">İsteğe bağlı:</span>
-        <button class="btn" data-run="shorts" ${pl ? "" : "disabled"}>Shorts</button>
+        ${((st.options || {}).cikis || "yatay") === "yatay" ? `<button class="btn" data-run="shorts" ${pl ? "" : "disabled"}>Shorts</button>` : ""}
         <button class="btn" data-run="package" ${pl ? "" : "disabled"}>Kapak kareleri</button>
         <button class="btn" data-run="youtube_text" ${pl ? "" : "disabled"}>Başlık ve açıklama</button>
         <button class="btn" data-run="archive" ${s.kurgu ? "" : "disabled"}>Klasörü güncelle</button>

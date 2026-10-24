@@ -67,6 +67,18 @@ ama yavaşlar; uygulama Whisper ve video adımlarında modeli ekran kartından k
 3. Bitince her şey **`Videolarım\<proje adı>\Yüklenecekler`** klasöründedir. O videonun tüm dosyaları
    `Videolarım\<proje adı>` içindedir; temizlik için o klasörü silmen yeterli (asıl kayıtlarına dokunulmaz).
 
+### Yatay mı, dikey mi?
+
+"Yeni video" kartında üç seçenek var:
+- **Yatay video edit** (varsayılan): yukarıdaki 16:9 YouTube kurgusu; yanında Shorts, kapak kareleri, başlık ve açıklama.
+- **Yataydan dikey video çıkar**: yatay çekimden tek bir dikey (1080x1920) video yapar; yüz takipli kırpma, kelime
+  kelime altyazı, -14 LUFS.
+- **Dikey video yükle**: dikey çektiğin videoyu dikey olarak kurgular.
+
+Dikey videolar **en fazla 3 dakika** olur, çünkü YouTube 3 dakikadan uzun dikey videoları Shorts saymaz. Kesilmiş
+video 3 dakikadan kısaysa tamamı kullanılır; uzunsa en güçlü anlardan (kanca, giriş, gelişme, sonuç) yaklaşık 2-3
+dakikalık bir kurgu çıkar. Dosya `Yüklenecekler\1 - Dikey video (Shorts).mp4` olur.
+
 ### Kurgu motorları
 
 Proje sayfasının üstünden seçilir:
@@ -132,5 +144,6 @@ computer: it cuts pauses, fillers and retakes (Whisper), places on-screen titles
 (local LLM via LM Studio), punches in on faces, adds transitions and sound effects, cleans and masters the audio
 (-14 LUFS), colour-corrects and encodes with NVENC. It also makes a Shorts cut, thumbnail frames and YouTube titles,
 can build an Adobe Premiere Pro project of the edit (optional), and has a board of six local AI agents that review the
-finished video. Nothing is uploaded anywhere. Install: download, double-click `KUR.bat`, start the LM Studio server.
+finished video. On the upload screen you can pick a horizontal edit, a vertical cut from horizontal footage, or a
+vertical upload; vertical videos are capped at 3 minutes (YouTube Shorts limit). Nothing is uploaded anywhere. Install: download, double-click `KUR.bat`, start the LM Studio server.
 The UI is in Turkish. License: MIT.

@@ -217,7 +217,8 @@ class JobManager:
                             problems.append(f"{label}: {type(e).__name__}: {e}")
                             job["log"].append({"t": round(time.time() - job["started"], 1), "m": f"{label} atlandı: {e}"})
                     soft("Kapak kareleri", lambda: pipeline.make_package(proj, sub(2), llm=llm))
-                    soft("Shorts", lambda: pipeline.make_shorts(proj, sub(3), llm=llm))
+                    if options_of(proj.settings).get("cikis", "yatay") == "yatay":   # vertical modes: the video IS the Short
+                        soft("Shorts", lambda: pipeline.make_shorts(proj, sub(3), llm=llm))
                     if llm:
                         soft("Başlık ve açıklama", lambda: pipeline.make_youtube_text(proj, sub(3), llm=llm))
                     soft("Arşiv", lambda: pipeline.make_archive(proj, sub(4)))

@@ -1339,6 +1339,8 @@ def make_video(proj: Project, progress: Progress = _noop, llm=None) -> dict:
     """The finished video always comes from our engine in ONE pass straight from the recordings (all animations,
     camera moves and the intro need it; Premiere's export flattened them and took hours). With the "premiere"
     option a Premiere review project is built afterwards on the original recordings."""
+    if dr_options(proj).get("cikis", "yatay") != "yatay":
+        return make_vertical(proj, progress, llm)
     try:   # the board room starts the meeting when this video is done and Premiere is open: make sure it is up
         from .desktop import start_room    # (it had quietly stopped on 22.10.2026 and no meeting was held)
         start_room()
@@ -1466,10 +1468,30 @@ def add_chatgpt_thumbnail(proj: Project, label: str, src: Path) -> dict:
     return pk
 
 
-def make_shorts(proj: Project, progress: Progress = _noop, llm=None) -> dict:
+VERTICAL_MAX_S = 178.0   # YouTube counts a vertical video as a Short only up to 3 minutes
+
+
+def make_vertical(proj: Project, progress: Progress = _noop, llm=None) -> dict:
+    """The vertical modes ("Yataydan dikey video çıkar", "Dikey video yükle"): the product IS a vertical video of at
+    most 3 minutes. A cut that fits is turned vertical whole (face-tracked crop); a longer one is cut down to its
+    strongest parts. Written as the project's main video (kurgu.json), so archive, package and the board use it."""
+    res = make_shorts(proj, progress, llm, product=True)
+    info = {"file": res["file"], "duration": res["duration"], "width": res["width"], "height": res["height"],
+            "fps": proj.cfg.design.get("shorts", {}).get("fps", 30), "engine": "dikey",
+            "engine_note": res.get("note"), "vertical": res,
+            "director": {"options": dr_options(proj), "notes": [], "counts": {}, "sfx": 0},
+            "graphics": {"callouts": [], "camfx": 0, "zoom_segments": 0, "method": res["pick"].get("method"),
+                         "warning": res["pick"].get("warning")},
+            "captions": True, "ok": res["duration"] <= VERTICAL_MAX_S + 2}
+    proj.save("kurgu.json", info)
+    return info
+
+
+def make_shorts(proj: Project, progress: Progress = _noop, llm=None, product: bool = False) -> dict:
     """Step 6: a story Shorts that SUMMARISES the video: cold-open hook -> intro -> best moments -> conclusion,
     zoom transitions + whoosh between parts, top headline, animated captions, end card
-    "Videonun uzun versiyonu YouTube kanalımda", colour + retouch, mastered audio."""
+    "Videonun uzun versiyonu YouTube kanalımda", colour + retouch, mastered audio.
+    product=True (vertical modes): the whole cut when it fits in 3 minutes, else a <= 3 minute cut, no end card."""
     from .audio.master import builtin_sfx
     from .editing.plan import resnap
     from .editing.shorts import is_cta, is_junk, llm_summary, plan_summary, sentences, story_summary, validate_summary
@@ -1487,8 +1509,13 @@ def make_shorts(proj: Project, progress: Progress = _noop, llm=None) -> dict:
     scfg = proj.cfg.design.get("shorts", {})
     lo, hi = scfg.get("summary_min_s", 50), scfg.get("summary_max_s", 90)
     sents = sentences(pl["transcript_cut"])
-    progress(0.02, "Shorts özeti kurgulanıyor")
+    whole = product and bool(sents) and sents[-1]["end"] - sents[0]["start"] <= VERTICAL_MAX_S - 1
+    if product and not whole:
+        lo, hi = 110, VERTICAL_MAX_S - 6
+    progress(0.02, "Dikey video kurgulanıyor" if product else "Shorts özeti kurgulanıyor")
     why = None
+    if whole:
+        llm = llm or False     # nothing to choose: the whole cut is used
     if llm is None:
         llm, why = _llm_or_none(proj, lambda f, m: progress(0.03, m))
     pick = None
@@ -1515,10 +1542,20 @@ def make_shorts(proj: Project, progress: Progress = _noop, llm=None) -> dict:
         finally:
             if hasattr(llm, "cfg") and old_t is not None:
                 llm.cfg["timeout_s"] = old_t
-    pick = validate_summary(pick or story_summary(sents, lo, hi), sents, lo, hi)
+    if whole:
+        pick = {"hook": None, "clips": [{"start": 0, "end": len(sents) - 1, "role": "tam"}], "headline": None,
+                "reason": "Kesilmiş video 3 dakikaya sığıyor: tamamı dikey", "method": "tamamı"}
+    else:
+        pick = validate_summary(pick or story_summary(sents, lo, hi, target_s=150 if product else 60), sents, lo, hi)
     if why:
         pick["warning"] = why
     sp = plan_summary(sents, pick, pl["segments"])
+    while product and sp["duration"] > VERTICAL_MAX_S and len(pick["clips"]) > 1:
+        # never over 3 minutes: drop the longest middle part (the opening and the payoff stay)
+        mid = pick["clips"][1:-1] or pick["clips"][:-1]
+        longest = max(mid, key=lambda c: sents[c["end"]]["end"] - sents[c["start"]]["start"])
+        pick["clips"] = [c for c in pick["clips"] if c is not longest]
+        sp = plan_summary(sents, pick, pl["segments"])
     proj.log.write("shorts", "summary", pick.get("reason", ""), hook=pick.get("hook"), clips=pick["clips"],
                    method=pick.get("method"))
     progress(0.1, "Yüz takibi")
@@ -1530,20 +1567,23 @@ def make_shorts(proj: Project, progress: Progress = _noop, llm=None) -> dict:
     pieces = [Piece(pc["file"], pc["in"], pc["out"], cx=cx, kind=pc["kind"],
                     trans_in=0.18 if pc["first"] and pc["part"] > 0 else 0.0)
               for pc, cx in zip(sp["pieces"], centers)]
-    outro_s = 3.0
-    pieces.append(Piece(pieces[-1].file, 0.0, outro_s, kind="hold"))
+    outro_s = 0.0 if product else 3.0
+    if outro_s:
+        pieces.append(Piece(pieces[-1].file, 0.0, outro_s, kind="hold"))
     body = sp["duration"]
     fx = builtin_sfx()
     sfx = [{"t": max(0.0, t - 0.15), "file": fx["whoosh"], "gain_db": -16} for t in sp["cuts"]]
-    sfx.append({"t": max(0.0, body - 0.9), "file": fx["riser"], "gain_db": -20})
-    sfx.append({"t": body, "file": fx["impact"], "gain_db": -15})
+    if outro_s:
+        sfx.append({"t": max(0.0, body - 0.9), "file": fx["riser"], "gain_db": -20})
+        sfx.append({"t": body, "file": fx["impact"], "gain_db": -15})
     overlays = []
     headline = (pick.get("headline") or "").strip()
     if headline and len(headline.split()) <= 8:
         overlays.append(Overlay(0.15, min(3.8, body), draw_headline(headline, W, H), fade=0.25, anim="pop"))
         sfx.append({"t": 0.1, "file": fx["pop"], "gain_db": -18})
-    overlays.append(Overlay(body + 0.05, body + outro_s, draw_outro(W, H), fade=0.25, anim="pop"))
-    ass = out_dir / "shorts_altyazi.ass"
+    if outro_s:
+        overlays.append(Overlay(body + 0.05, body + outro_s, draw_outro(W, H), fade=0.25, anim="pop"))
+    ass = out_dir / ("dikey_altyazi.ass" if product else "shorts_altyazi.ass")
     from .motion.titles import set_theme
     s_opts = dr_options(proj)
     s_acc = set_theme(str(s_opts.get("renk", "otomatik")), proj.name)
@@ -1551,7 +1591,7 @@ def make_shorts(proj: Project, progress: Progress = _noop, llm=None) -> dict:
                              active_color=ass_color(s_acc), style=caption_style(s_opts, vertical=True)),
                    encoding="utf-8")
     rt, rt_note = _retoucher(proj)
-    out = out_dir / "shorts.mp4"
+    out = out_dir / ("dikey.mp4" if product else "shorts.mp4")
     info = render(pieces, str(out), W, H, fps, frame_fn=rt, ass_path=str(ass), vertical=True, overlays=overlays,
                   image=proj.cfg.design.get("image"),
                   loudness=scfg.get("loudness", "I=-14:TP=-1.5:LRA=11"), sfx=sfx,
@@ -1564,10 +1604,22 @@ def make_shorts(proj: Project, progress: Progress = _noop, llm=None) -> dict:
            "parts": sp["parts"], "hook_text": sents[pick["hook"]]["text"] if pick.get("hook") is not None else None,
            "start_text": sp["parts"][0]["text"] if sp["parts"] else "",
            "render": info, "face_note": None if backend() != "yok" else "Yüz modeli yok: kadraj ortalandı",
-           "retouch_note": rt_note, "ok": 30 <= probe.duration <= 130}
+           "retouch_note": rt_note,
+           "ok": probe.duration <= VERTICAL_MAX_S + 2 if product else 30 <= probe.duration <= 130,
+           "note": ("Kesilmiş videonun tamamı dikey" if whole else
+                    f"Kesilmiş video {fmt_min(sents[-1]['end'])} sürüyordu: en güçlü anlarından 3 dakikayı aşmayan bir "
+                    "dikey kurgu yapıldı") if product else None}
+    if product:
+        proj.save("dikey.json", res)
+        progress(1.0, "Dikey video hazır")
+        return res
     proj.save("shorts.json", res)
     progress(1.0, "Shorts hazır")
     return res
+
+
+def fmt_min(s: float) -> str:
+    return f"{int(s) // 60} dk {int(s) % 60} sn"
 
 
 def dr_options(proj: Project) -> dict:
@@ -1645,7 +1697,7 @@ def make_archive(proj: Project, progress: Progress = _noop) -> dict:
                 shutil.copy2(src, dst)
         files.append(str(dst))
 
-    put(km["file"], "1 - Video (YouTube).mp4")
+    put(km["file"], "1 - Dikey video (Shorts).mp4" if km.get("engine") == "dikey" else "1 - Video (YouTube).mp4")
     if sh:
         put(sh["file"], "2 - Shorts.mp4")
     for i, f in enumerate(pk.get("frames", []), 1):

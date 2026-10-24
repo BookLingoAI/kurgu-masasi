@@ -521,6 +521,11 @@ def make_handler(app: App):
                     if not vids:
                         raise ValueError("Konuşma videosu seçilmedi")
                     pr = app.create_project(vids[0], data.get("title"), vids[1:], ek)
+                    if data.get("cikis") in ("yataydan_dikey", "dikey"):   # vertical product chosen on the upload screen
+                        pj = app.pdir(pr["name"]) / "proje.json"
+                        st = read_json(pj, {}) or {}
+                        st["options"] = dict(st.get("options") or {}, cikis=data["cikis"])
+                        write_json(pj, st)
                     intro = [str(app.media_path(x, VIDEO_EXT)) for x in data.get("intro", [])]
                     if intro:   # "İkisi de": talk recordings that are also scanned whole for intro shots
                         pj = app.pdir(pr["name"]) / "proje.json"

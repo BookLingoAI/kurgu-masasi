@@ -35,7 +35,10 @@ DEFAULT_OPTIONS = {"screen_side": "right", "intensity": "medium", "captions": Tr
                    "capcut": True, "kamera_oyunlari": True,
                    "renk": "otomatik", "yazi_efekti": "karisik",
                    "intro_otomatik": True, "sayma_hizli": True,
-                   "motor": "kurgu"}   # kurgu = our engine, karma = our cut + HyperFrames graphics, hyperframes = all in HyperFrames
+                   "motor": "kurgu",
+                   # cikis: yatay = 16:9 edit (+ Shorts); yataydan_dikey / dikey = the product is one vertical video,
+                   # at most 3 minutes (YouTube does not count longer vertical videos as Shorts)
+                   "cikis": "yatay"}   # kurgu = our engine, karma = our cut + HyperFrames graphics, hyperframes = all in HyperFrames
 # words that point at the screen ("look here", "click") - lower the bar for switching to the screen recording
 DEICTIC = {"burada", "burası", "buraya", "burda", "şurada", "şuraya", "şurası", "bakın", "bakalım", "görüyorsunuz",
            "tıklıyorsunuz", "tıkladım", "tıklayın", "ekranda", "ekrana", "sayfada", "şu", "aşağıda", "yukarıda"}
