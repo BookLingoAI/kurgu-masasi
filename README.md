@@ -21,7 +21,6 @@ kapak için en iyi kareler, başlık ve açıklama da hazırlar.
 | 4. Video | Renk düzeltme, ses temizliği ve -14 LUFS (YouTube) ses seviyesi, ekran kartıyla hızlı kodlama | FFmpeg (NVENC) |
 | 5. Paket | Shorts (dikey, yüz takipli, kelime kelime altyazılı), kapak için 6 temiz kare, 3 başlık + açıklama + bölümler | yerel dil modeli |
 | 6. Premiere (isteğe bağlı) | Aynı kurguyu Adobe Premiere Pro'da düzenlenebilir bir proje olarak kurar | Premiere Pro + köprü paneli |
-| 7. Kurgu Kurulu (isteğe bağlı) | 6 yapay zekâ "uzman" bitmiş videoyu ölçer, seslice tartışır, öneri oylar; sen onaylarsın | yerel dil modeli |
 
 Ekrana **konuşmada söylenmeyen hiçbir bilgi yazılmaz**: her yazı, söylenen cümleyle karşılaştırılır.
 
@@ -32,7 +31,7 @@ Ekrana **konuşmada söylenmeyen hiçbir bilgi yazılmaz**: her yazı, söylenen
 | **Windows 10 / 11 (64 bit)** | uygulama Windows için yazıldı | — |
 | **NVIDIA ekran kartı** (önerilir, 8 GB+) | Whisper ve video kodlama hızlı çalışır; yoksa işlemciyle, yavaş çalışır | — |
 | **16 GB RAM, ~30 GB boş disk** | modeller ve videolar | — |
-| **LM Studio** + bir **Qwen** dil modeli | yazılar, Shorts seçimi, başlık/açıklama, ajanlar | ücretsiz |
+| **LM Studio** + bir **Qwen** dil modeli | yazılar, Shorts seçimi, başlık/açıklama | ücretsiz |
 | Python 3.12, FFmpeg | uygulamanın kendisi | ücretsiz (kurulum kendisi kurar) |
 | **Adobe Premiere Pro** | *isteğe bağlı*: kurguyu Premiere'de açıp elle düzenlemek için | ücretli |
 
@@ -92,13 +91,6 @@ cd araclar\hyperframes
 npm ci
 ```
 
-### Kurgu Kurulu (ajanlar)
-
-Video bitince 6 yapay zekâ "uzman" (hikâye, yazı, animasyon, geçiş, ses, renk) videoyu ölçer ve neon robotların olduğu
-bir odada seslice tartışır. Öneriler oylanır (en az 3 destek, en çok 1 itiraz, alan uzmanının vetosu); hiçbir şey sen
-onaylamadan uygulanmaz. Mikrofonla araya girebilirsin. Ses için Windows'un Türkçe sesi kullanılır; daha doğal sesler
-isteğe bağlıdır (`kurulum_kaynak\gereksinimler-istege-bagli.txt`, yalnız ticari olmayan kullanım).
-
 ## Sık karşılaşılanlar
 
 | Sorun | Çözüm |
@@ -114,7 +106,7 @@ isteğe bağlıdır (`kurulum_kaynak\gereksinimler-istege-bagli.txt`, yalnız ti
 kurgu/            uygulamanın kodu (Python)
   analysis/       ses, transkript, metin    editing/   kesim, yönetmen, yazılar, Shorts
   motion/         çizim, yazı animasyonları audio/     ses temizliği, efektler
-  vision/         yüz, renk                 board/     Kurgu Kurulu (ajanlar)
+  vision/         yüz, renk
   integrations/   FFmpeg, LM Studio, Premiere, HyperFrames     web/  arayüz
 tests/            otomatik testler
 kurulum_kaynak/   kurulum sihirbazı, paket listeleri, Premiere köprü paneli
@@ -143,7 +135,6 @@ Kurgu Masası'nın kodu **MIT** lisanslıdır (`LICENSE`). Kullanılan üçünc�
 computer: it cuts pauses, fillers and retakes (Whisper), places on-screen titles only from what was actually said
 (local LLM via LM Studio), punches in on faces, adds transitions and sound effects, cleans and masters the audio
 (-14 LUFS), colour-corrects and encodes with NVENC. It also makes a Shorts cut, thumbnail frames and YouTube titles,
-can build an Adobe Premiere Pro project of the edit (optional), and has a board of six local AI agents that review the
-finished video. On the upload screen you can pick a horizontal edit, a vertical cut from horizontal footage, or a
+can build an Adobe Premiere Pro project of the edit (optional). On the upload screen you can pick a horizontal edit, a vertical cut from horizontal footage, or a
 vertical upload; vertical videos are capped at 3 minutes (YouTube Shorts limit). Nothing is uploaded anywhere. Install: download, double-click `KUR.bat`, start the LM Studio server.
 The UI is in Turkish. License: MIT.

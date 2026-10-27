@@ -79,29 +79,8 @@ def main() -> int:
             _message("Kurgu Masası başlatılamadı.\n\nAyrıntı: " + (str(log[-1]) if log else "logs klasörü") +
                      "\n\nSorun sürerse kurulumu yeniden çalıştırın (Onar).")
             return 1
-    start_room()
     open_window()
     return 0
-
-
-def start_room() -> None:
-    """The board room (kurgu/board/room.py, port 8771) runs beside the app: it starts a meeting by itself when a new
-    project's video is ready and Premiere is open, and opens its own window for it."""
-    try:
-        from .board.room import server_up as room_up
-        if room_up():
-            return
-        exe = Path(sys.executable)
-        pyw = exe.with_name("pythonw.exe") if exe.name.lower() == "python.exe" else exe
-        flags = (0x00000008 | 0x00000200 | NOWIN) if os.name == "nt" else 0
-        args = dict(cwd=str(ROOT), close_fds=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL)
-        try:    # leave the starter's job object, or the room dies with whatever started it (seen 22.10.2026)
-            subprocess.Popen([str(pyw), "-m", "kurgu.board.room"], creationflags=flags | 0x01000000, **args)
-        except OSError:   # the job does not allow breaking away: start it the plain way
-            subprocess.Popen([str(pyw), "-m", "kurgu.board.room"], creationflags=flags, **args)
-    except Exception:  # noqa: BLE001 - the app itself must open even if the room cannot
-        pass
 
 
 if __name__ == "__main__":

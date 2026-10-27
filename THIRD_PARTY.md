@@ -26,7 +26,6 @@ Kurgu Masası'nın kendi kodu MIT lisanslıdır. Depoda bulunan ya da kurulumda 
 | HyperFrames (isteğe bağlı, `npm ci`) | Apache-2.0 |
 | GSAP (isteğe bağlı, HyperFrames blokları için) | GSAP "Standard No Charge" lisansı |
 | Demucs + PyTorch (isteğe bağlı müzik temizleyici) | MIT / BSD |
-| Piper `tr_TR-dfki-medium` sesi, Coqui XTTS-v2 (isteğe bağlı ajan sesleri) | CC BY-NC-SA 4.0 / Coqui Public Model License — **yalnız ticari olmayan kullanım** |
 
 Uygulama içinden indirilebilen ses efektleri (Mixkit Free License, Kenney CC0) depoya konmadı; indirilen her dosyanın
 kaynağı ve lisansı `paketler\katalog.json` içine yazılır.

@@ -4,8 +4,3 @@
 #    "Müzik temizleyiciyi kur" düğmesi. Elle kurmak için (NVIDIA ekran kartı):
 #      .venv\Scripts\python.exe -m pip install torch==2.11.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cu128
 #      .venv\Scripts\python.exe -m pip install demucs==4.1.0
-#
-# 2) Kurgu Kurulu ajanlarının sesleri (yoksa Windows'un Türkçe sesi "Microsoft Tolga" kullanılır):
-#      piper-tts==1.8.0   (GPL-3.0; ses modeli tr_TR-dfki-medium CC BY-NC-SA 4.0 - yalnız ticari olmayan kullanım)
-#      coqui-tts==0.28.0  (XTTS-v2 modeli Coqui Public Model License - yalnız ticari olmayan kullanım)
-#    Bu modeller depoya konmadı; lisansları ticari kullanıma izin vermiyor.

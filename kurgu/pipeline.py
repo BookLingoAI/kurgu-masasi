@@ -1267,11 +1267,6 @@ def _main_info(proj: Project, ctx: dict, out: Path, extra: dict) -> dict:
             "captions": bool(ctx["ass"]), "ok": abs(probe.duration - expected) < 0.5}
     info.update(extra)
     proj.save("kurgu.json", info)
-    try:      # what the render did, for the review board (kurgu/board/measure.py)
-        from .board.measure import manifest_of
-        proj.save("kurgu_manifest.json", manifest_of(ctx))
-    except Exception as e:  # noqa: BLE001 - the video is fine without it
-        proj.log.write("render", "note", f"Kurgu manifestosu yazılamadı: {e}")
     return info
 
 
@@ -1341,11 +1336,6 @@ def make_video(proj: Project, progress: Progress = _noop, llm=None) -> dict:
     option a Premiere review project is built afterwards on the original recordings."""
     if dr_options(proj).get("cikis", "yatay") != "yatay":
         return make_vertical(proj, progress, llm)
-    try:   # the board room starts the meeting when this video is done and Premiere is open: make sure it is up
-        from .desktop import start_room    # (it had quietly stopped on 22.10.2026 and no meeting was held)
-        start_room()
-    except Exception:  # noqa: BLE001 - the video never depends on the room
-        pass
     ctx = _prepare_main(proj, lambda f, m: progress(0.08 * f, m), llm)
     review = ctx["opts"].get("engine", "premiere") == "premiere"   # Premiere review project (and the board meeting)
     span = 0.80 if review else 0.92

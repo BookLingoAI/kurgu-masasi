@@ -16,8 +16,6 @@ def test_default_is_the_usual_horizontal_edit():
 
 def test_only_vertical_projects_take_the_vertical_path(monkeypatch):
     calls = []
-    from kurgu import desktop
-    monkeypatch.setattr(desktop, "start_room", lambda: None)   # no board-room process from a test
     monkeypatch.setattr(pipeline, "make_vertical", lambda proj, progress, llm: calls.append("dikey") or {"engine": "dikey"})
     monkeypatch.setattr(pipeline, "_prepare_main", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("yatay yol")))
     for mode in ("dikey", "yataydan_dikey"):
